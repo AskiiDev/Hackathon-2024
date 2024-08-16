@@ -1,4 +1,4 @@
-from mapgen import gen_map, gen_map_grid, get_stationart, get_start_pos
+from mapgen import *
 import pygame
 import math 
 
@@ -130,12 +130,13 @@ def load_image(image, darken, colorKey = None):
 def ray_cast_better():
     global background
     global texture
+    global sprites
 
     w = WIDTH
     h = HEIGHT - 150
     
     if background is None:
-        background = pygame.transform.scale(pygame.image.load("imgs/background.png").convert(), (w, h))
+        background = pygame.transform.scale(pygame.image.load("imgs/bg.png").convert(), (w, h))
     
     display.blit(background, (0, 0)) 
 
@@ -194,7 +195,7 @@ def ray_cast_better():
                 map_y += step_y
                 side = 1
 
-            if (MAP[int(map_x)][int(map_y)] == TEMP_WALL):
+            if (MAP[int(map_x)][int(map_y)] == TEMP_WALL) or math.sqrt((map_x - ray_pos_x)**2 + (map_y - ray_pos_y)**2) > 12:
                 hit = 1
 
         if side == 0:
@@ -229,14 +230,79 @@ def ray_cast_better():
             draw_start = -5000 + h/2
             draw_end = 5000 + h/2
 
-        # print(tex_x)
+        A = max(1 - ((math.sqrt((map_x - ray_pos_x)**2 + (map_y - ray_pos_y)**2)) / 11), 0)
+        
+        scaled_texture = pygame.transform.scale(texture[tex_x], (1, line_height))
 
-        display.blit(pygame.transform.scale(texture[tex_x], (1, line_height)), (x, draw_start))
+        dark_surface = pygame.Surface(scaled_texture.get_size())
+        dark_surface.fill((255 * A, 255 * A, 255 * A))
+        scaled_texture.blit(dark_surface, (0, 0), special_flags=pygame.BLEND_RGB_MULT)
+        display.blit(scaled_texture, (x, draw_start))
+
         z_buffer.append(perp_wall_dist)
 
+        # def sprite_compare(sprite1, sprite2):
+        #     # Calculate the square of distances directly to avoid unnecessary sqrt computation
+        #     sprite1_dist_sq = (sprite1.coords[0] - player_coords['x']) ** 2 + (sprite1.coords[1] - player_coords['y']) ** 2
+        #     sprite2_dist_sq = (sprite2.coords[0] - player_coords['x']) ** 2 + (sprite2.coords[1] - player_coords['y']) ** 2
+
+        #     # Direct comparison of squared distances
+        #     if sprite1_dist_sq > sprite2_dist_sq:
+        #         return 1
+        #     elif sprite1_dist_sq == sprite2_dist_sq:
+        #         return 0
+        #     else:
+        #         return -1
+
+        # To sort the list of sprites:
+        def sprite_distance(sprite):
+            # Calculate the distance from the player to the sprite
+            return ((sprite.coords[0] - player_coords['x']) ** 2 + (sprite.coords[1] - player_coords['y']) ** 2)
+
+        # Sort sprites by distance (farthest first)
+        sprites.sort(key=sprite_distance, reverse=True)
+
+        for sprite in sprites:
+            sprite_x = sprite.coords[0] - player_coords['x']
+            sprite_y = sprite.coords[1] - player_coords['y']
+
+            inv_det = 1/(camera_plane['x'] * sprite_x - player_rotation['x'] * camera_plane['y']) 
+
+            transform_x = inv_det * (player_rotation['y'] * sprite_x - player_rotation['x'] * sprite_y)
+            transform_y = inv_det * (- camera_plane['y'] * sprite_x + camera_plane['x'] * sprite_y)
+
+            sprite_surface_x = int((w/2) * (1 + transform_x / transform_y))
+
+            sprite_height = abs(int(h / (transform_y))) 
+            draw_start_y = - sprite_height / 2 + h / 2
+            draw_end_y = sprite_height / 2 + h / 2
+
+            sprite_width = abs(int(h / (transform_y))) 
+            draw_start_x = int(- sprite_width / 2 + sprite_surface_x)
+            draw_end_x = int(sprite_width / 2 + sprite_surface_x)
+            
+            
+            if sprite_height < 1000:
+                for stripe in range(draw_start_x, draw_end_x):
+                    tex_x = int(256 * (stripe - (- sprite_width / 2 + sprite_surface_x)) * TEXTURE_WIDTH / sprite_width)
+                    # print(f"hi {draw_start_x}")
+                    # print(len(z_buffer))
+                    # print(tex_x)
+                    if(transform_y > 0 and stripe > 0 and stripe < w ):
+                        if (transform_y < z_buffer[stripe]):
+                            display.blit(pygame.transform.scale(sprite.texture[tex_x], (1, sprite_height)), (stripe, draw_start_y))
 
 def render_hud():
     pygame.draw.rect(display, (100, 100, 100), pygame.Rect(0, HEIGHT - 150, WIDTH, 150))
+    # display.blit(pygame.transform.scale(render_map(get_stationary()), (150, 150)), (0, HEIGHT - 150))
+
+
+class Sprite:
+    def __init__(self, coords, texture):
+        self.coords = coords
+        self.texture = texture
+
+
 
 
 def init():
@@ -249,15 +315,18 @@ def init():
     global MAP_HEIGHT
     global background
     global texture
+    global sprites
+
 
     background = None
     texture = load_image(pygame.image.load("imgs/bluestone.png").convert(), False)
+
 
     pygame.event.set_grab(True)
     pygame.mouse.set_visible(False)
 
     gen_map()
-    MAP = gen_map_grid(get_stationart())
+    MAP = gen_map_grid(get_stationary())
     MAP_WIDTH = len(MAP)
     MAP_HEIGHT = len(MAP[0])
     start_pos = get_start_pos()
@@ -265,6 +334,11 @@ def init():
     player_rotation = {'x': -1, 'y': 0}
     camera_plane = {'x': 0, 'y': 0.66}
 
+    sprites = []
+    gobbo = Sprite((start_pos[0] + 1, start_pos[1] + 2), load_image(pygame.image.load("imgs/barrel.png").convert(), False, colorKey=(0, 0, 0)))
+    sprites.append(gobbo)
+
+    last_pos = start_pos
 
     while running:
         display.fill((0, 0, 0))
@@ -273,6 +347,8 @@ def init():
         input_handler(delta_time)
         ray_cast_better()
         render_hud()
+        if (player_coords['x'], player_coords['y']) != last_pos:
+            pass
 
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
@@ -282,7 +358,7 @@ def init():
                 running = False
 
         pygame.display.flip()
-        print(clock.get_fps())
+        # print(clock.get_fps())
 
 
 init()

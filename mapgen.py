@@ -4,10 +4,10 @@ import numpy as np
 
 import pygame
 
-WIDTH = 300
-HEIGHT = 300
+WIDTH = 75
+HEIGHT = 75
 
-ROOMS = 10
+ROOMS = 100
 
 ROOM_MIN = 3
 ROOM_MAX = 7
@@ -24,6 +24,7 @@ MAX_TRIES = 10
 generated_rooms = []
 joinable = []
 stationary = []
+discovered = []
 
 def get_midpoint(room):
     return (room["coords"]['x'] + room["size"]["x"] // 2, room["coords"]['y'] + room["size"]["y"] // 2)
@@ -147,6 +148,9 @@ def gen_map_grid(rooms):
 def gen_map():
     global stationary
     global joinable
+    global discovered
+
+    discovered = []
 
     for i in range(ROOMS):
         try_gen_room()
@@ -174,8 +178,30 @@ def gen_map():
 
             joinable.remove(join)
 
-def get_stationart():
+    discovered.append(stationary[0])
+    discovered.append(stationary[-1])
+
+def render_map(rooms):
+    colours = np.array([[0, 0, 0], [0, 0, 255], [255, 255, 0]], dtype=np.uint8)  # 3x3 array for RGB values
+    surface = pygame.Surface((WIDTH, HEIGHT))
+    grid = np.array(gen_map_grid(rooms), dtype=np.uint8)  # Convert grid to NumPy array
+
+    # Use grid to index into colours array and create an RGB array for the surface
+    pixels = colours[grid]
+
+    # Use surfarray to directly set the surface's pixels
+    pygame.surfarray.blit_array(surface, pixels)
+
+    return surface
+
+def get_stationary():
     return stationary
+
+def get_discovered():
+    return discovered
+
+def discover(x, y):
+    pass
 
 def get_start_pos():
     global stationary
@@ -186,4 +212,3 @@ def get_end_pos():
     return get_midpoint(stationary[-1])
 
 gen_map()
-# gen_map_grid(generated_rooms)
