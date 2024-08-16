@@ -99,7 +99,6 @@ def input_handler(delta_time):
     camera_plane['x'] = (old_camera_plane['x'] * math.cos(turn_delta) - old_camera_plane['y'] * math.sin(turn_delta))
     camera_plane['y'] = (old_camera_plane['x'] * math.sin(turn_delta) + old_camera_plane['y'] * math.cos(turn_delta))
 
-
     if 'w' in move:
         try_move_forward(delta_time, 1)
     if 's' in move:
@@ -110,6 +109,7 @@ def input_handler(delta_time):
         try_move_right(delta_time, 1)
 
 # -----------------------------------------------------------------------------------------------
+
 
 def load_image(image, darken, colorKey = None):
     ret = []
@@ -124,8 +124,8 @@ def load_image(image, darken, colorKey = None):
         if colorKey is not None:
             s.set_colorkey(colorKey)
         ret.append(s)
-    print(len(ret))
     return ret
+
 
 def ray_cast_better():
     global background
@@ -151,22 +151,14 @@ def ray_cast_better():
         ray_dir_y = player_rotation['y'] + camera_x * camera_plane['y']
 
         map_x = int(ray_pos_x)
-        map_y = int(ray_pos_y) 
-
-        side_dist_x = 0.
-        side_dist_y = 0.
+        map_y = int(ray_pos_y)
 
         if ray_dir_x== 0: 
             ray_dir_x = 0.00001
         d_dist_x = math.sqrt(1 + (ray_dir_y ** 2) / (ray_dir_x ** 2))
-        # print(d_dist_x)
         if ray_dir_y== 0: 
             ray_dir_y = 0.00001
         d_dist_y = math.sqrt(1 + (ray_dir_x ** 2) / (ray_dir_y ** 2))
-
-        perp_wall_dist = 0
-        step_x = 0
-        step_y = 0
         
         hit = False
         side = 0
@@ -211,7 +203,6 @@ def ray_cast_better():
         draw_start = - line_height / 2 + h / 2 
         draw_end = line_height / 2 + h / 2 
 
-        wall_x = 0
         if side == 1:
             wall_x = ray_pos_x + ((map_y - ray_pos_y + (1 - step_y) / 2) / ray_dir_y) * ray_dir_x
         else:
@@ -231,6 +222,7 @@ def ray_cast_better():
             draw_end = 5000 + h/2
 
         A = max(1 - ((math.sqrt((map_x - ray_pos_x)**2 + (map_y - ray_pos_y)**2)) / 11), 0)
+        # A = 1
         
         scaled_texture = pygame.transform.scale(texture[tex_x], (1, line_height))
 
@@ -255,42 +247,47 @@ def ray_cast_better():
         #         return -1
 
         # To sort the list of sprites:
-        def sprite_distance(sprite):
-            # Calculate the distance from the player to the sprite
-            return ((sprite.coords[0] - player_coords['x']) ** 2 + (sprite.coords[1] - player_coords['y']) ** 2)
+    def sprite_distance(sprite):
+        # Calculate the distance from the player to the sprite
+        return (sprite.coords[0] - player_coords['x']) ** 2 + (sprite.coords[1] - player_coords['y']) ** 2
 
-        # Sort sprites by distance (farthest first)
-        sprites.sort(key=sprite_distance, reverse=True)
+    #Sort sprites by distance (farthest first)
+    sprites.sort(key=sprite_distance, reverse=True)
 
-        for sprite in sprites:
-            sprite_x = sprite.coords[0] - player_coords['x']
-            sprite_y = sprite.coords[1] - player_coords['y']
+    for sprite in sprites:
+        #print(sprite)
+        sprite_x = sprite.coords[0] - player_coords['x']
+        sprite_y = sprite.coords[1] - player_coords['y']
 
-            inv_det = 1/(camera_plane['x'] * sprite_x - player_rotation['x'] * camera_plane['y']) 
+        inv_det = 1.0 / (camera_plane['x'] * player_rotation['y'] - player_rotation['x'] * camera_plane['y'])
 
-            transform_x = inv_det * (player_rotation['y'] * sprite_x - player_rotation['x'] * sprite_y)
-            transform_y = inv_det * (- camera_plane['y'] * sprite_x + camera_plane['x'] * sprite_y)
+        transform_x = inv_det * (player_rotation['y'] * sprite_x - player_rotation['x'] * sprite_y)
+        transform_y = inv_det * (-camera_plane['y'] * sprite_x + camera_plane['x'] * sprite_y)
 
-            sprite_surface_x = int((w/2) * (1 + transform_x / transform_y))
+        sprite_surface_x = int((w / 2) * (1 + transform_x / transform_y))
 
-            sprite_height = abs(int(h / (transform_y))) 
-            draw_start_y = - sprite_height / 2 + h / 2
-            draw_end_y = sprite_height / 2 + h / 2
+        sprite_height = abs(int(h / transform_y))
+        draw_start_y = -sprite_height / 2 + h / 2
+        draw_end_y = sprite_height / 2 + h / 2
 
-            sprite_width = abs(int(h / (transform_y))) 
-            draw_start_x = int(- sprite_width / 2 + sprite_surface_x)
-            draw_end_x = int(sprite_width / 2 + sprite_surface_x)
-            
-            
-            if sprite_height < 1000:
-                for stripe in range(draw_start_x, draw_end_x):
-                    tex_x = int(256 * (stripe - (- sprite_width / 2 + sprite_surface_x)) * TEXTURE_WIDTH / sprite_width)
-                    # print(f"hi {draw_start_x}")
-                    # print(len(z_buffer))
-                    # print(tex_x)
-                    if(transform_y > 0 and stripe > 0 and stripe < w ):
-                        if (transform_y < z_buffer[stripe]):
-                            display.blit(pygame.transform.scale(sprite.texture[tex_x], (1, sprite_height)), (stripe, draw_start_y))
+        sprite_width = abs(int(h / transform_y))
+        # print(sprite_surface_x)
+        draw_start_x = int(- sprite_width / 2 + sprite_surface_x)
+        draw_end_x = int(sprite_width / 2 + sprite_surface_x)
+
+        #print(f"{draw_start_x}, {draw_end_x}")
+
+        if sprite_height < 1000:
+            for stripe in range(draw_start_x, draw_end_x):
+                tex_x = int(int(256 * (stripe - (- sprite_width / 2 + sprite_surface_x)) * TEXTURE_WIDTH / sprite_width) / 256)
+                # print(f"hi {draw_start_x}")
+                # print(f"{stripe}, {len(z_buffer)}")
+                # print(tex_x)
+                if stripe >= len(z_buffer) or stripe < 0:
+                    continue
+                if 0 < transform_y < z_buffer[stripe] and stripe < w:
+                    display.blit(pygame.transform.scale(sprite.texture[tex_x], (1, sprite_height)), (stripe, draw_start_y))
+
 
 def render_hud():
     pygame.draw.rect(display, (100, 100, 100), pygame.Rect(0, HEIGHT - 150, WIDTH, 150))
@@ -301,8 +298,6 @@ class Sprite:
     def __init__(self, coords, texture):
         self.coords = coords
         self.texture = texture
-
-
 
 
 def init():
