@@ -4,10 +4,10 @@ import numpy as np
 
 import pygame
 
-WIDTH = 20
-HEIGHT = 20
+WIDTH = 100
+HEIGHT = 100
 
-ROOMS = 10
+ROOMS = 50
 
 ROOM_MIN = 3
 ROOM_MAX = 5
@@ -17,10 +17,9 @@ TRANSFORMS = [(-1, -1), (0, -1), (1, -1),
               (-1, 1), (0, 1), (1, 1)]
 
 
-
 SHIFTS = 3
 
-MAX_TRIES = 100
+MAX_TRIES = 10
 
 generated_rooms = []
 joinable = []

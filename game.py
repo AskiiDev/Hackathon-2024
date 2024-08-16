@@ -1,20 +1,11 @@
-#import mapgen
+from mapgen import gen_map, gen_map_grid, get_stationart, get_start_pos
 import pygame
 from math import pi, sin, cos
 
-MAP = [[1, 1, 1, 1, 1, 1, 1],
-       [1, 0, 0, 0, 0, 0, 1],
-       [1, 0, 0, 0, 0, 0, 1],
-       [1, 0, 0, 0, 0, 0, 1],
-       [1, 0, 1, 0, 2, 0, 1],
-       [1, 0, 1, 1, 1, 0, 1],
-       [1, 0, 0, 0, 0, 0, 1],
-       [1, 1, 1, 1, 1, 1, 1]]
-
 TEMP_WALL = 2
 
-MAP_WIDTH = len(MAP)
-MAP_HEIGHT = len(MAP[0])
+MAP_WIDTH = 0
+MAP_HEIGHT = 0
 
 HUD_OFFSET = 150
 WIDTH = 800
@@ -24,7 +15,7 @@ HALF_PI = 1.57
 
 RENDER_DISTANCE = 10
 ACCURACY = 2
-RAY_STEP_SIZE = 0.07
+RAY_STEP_SIZE = 0.1
 
 
 running = True
@@ -37,7 +28,7 @@ player_coords = {'x': 2, 'y': 2}
 player_rot = 0
 
 FOV = HALF_PI / 2
-WALK_SPEED = 1
+WALK_SPEED = 2
 TURN_SPEED = 0.003
 
 MOVE_MAP = {pygame.K_w: 'w',
@@ -129,17 +120,30 @@ def ray_cast():
         ceiling = (HEIGHT - 150) / 2 - (HEIGHT - 150) / wall_distance
         floor = (HEIGHT - 150) - 2 * ceiling
 
-        pygame.draw.rect(display, (int(200 * (1 - wall_distance / RENDER_DISTANCE)), 0, 0), pygame.Rect(x, ceiling, 1, floor))
+        pygame.draw.rect(display, (int(200 * max(0, 1 - wall_distance / RENDER_DISTANCE)), 0, 0), pygame.Rect(x, ceiling, 1, floor))
 
 
 def render_hud():
-    pygame.draw.rect(display, (200, 200, 0), pygame.Rect(0, HEIGHT - 150, WIDTH, 150))
+    pygame.draw.rect(display, (100, 100, 100), pygame.Rect(0, HEIGHT - 150, WIDTH, 150))
 
 
 def init():
     global running
+    global player_coords
+    global MAP
+    global MAP_WIDTH
+    global MAP_HEIGHT
+
     pygame.event.set_grab(True)
     pygame.mouse.set_visible(False)
+
+    gen_map()
+    MAP = gen_map_grid(get_stationart())
+    MAP_WIDTH = len(MAP)
+    MAP_HEIGHT = len(MAP[0])
+    print(MAP)
+    start_pos = get_start_pos()
+    player_coords = {'x': start_pos[0], 'y': start_pos[1]}
 
     while running:
         display.fill((0, 0, 0))
