@@ -12,60 +12,78 @@ ROOM_MAX = 15
 
 MAX_TRIES = 100
 
-generatedRooms = []
+generated_rooms = []
 
-def distanceBetweenRooms(room1, room2):
-    mid_a_x, mid_a_y = a["coords"]['x'] + a["size"]["x"] // 2, a["coords"]['y'] + a["size"]["y"] // 2
-    mid_b_x, mid_b_y = b["coords"]['x'] + b["size"]["x"] // 2, b["coords"]['y'] + b["size"]["y"] // 2
+def distance_between_rooms(room1, room2):
+    mid_a_x, mid_a_y = room1["coords"]['x'] + room1["size"]["x"] // 2, room1["coords"]['y'] + room1["size"]["y"] // 2
+    mid_b_x, mid_b_y = room2["coords"]['x'] + room2["size"]["x"] // 2, room2["coords"]['y'] + room2["size"]["y"] // 2
 
     return math.hypot(mid_a_x - mid_b_x, mid_a_y - mid_b_y)
 
-def roomsIntersect(room1, room2):
+def rooms_intersect(room1, room2):
     x1, y1, w1, h1 = room1["coords"]["x"], room1["coords"]["y"], room1["size"]["x"], room1["size"]["y"]
     x2, y2, w2, h2 = room2["coords"]["x"], room2["coords"]["y"], room2["size"]["x"], room2["size"]["y"]
 
     return not (x1 + w1 <= x2 or x2 + w2 <= x1 or y1 + h1 <= y2 or y2 + h2 <= y1)
 
 def try_gen_room():
-    global generatedRooms
+    global generated_rooms
 
     tries = 0 
     
     while tries < MAX_TRIES: 
         tries += 1
-        newRoomSize = {'x': random.randint(ROOM_MIN, ROOM_MAX), 
+        new_room_size = {'x': random.randint(ROOM_MIN, ROOM_MAX), 
                        'y': random.randint(ROOM_MIN, ROOM_MAX)} 
-        newRoomPosition = {'x': random.randint(0, WIDTH - newRoomSize['x']), 
-                           'y': random.randint(0, HEIGHT - newRoomSize['y'])} 
+        new_room_position = {'x': random.randint(0, WIDTH - new_room_size['x']), 
+                           'y': random.randint(0, HEIGHT - new_room_size['y'])} 
         
-        newRoom = {"coords": newRoomPosition, "size": newRoomSize} 
+        new_room = {"coords": new_room_position, "size": new_room_size} 
 
-        if len(generatedRooms) == 0:
-            generatedRooms.append(newRoom)
+        if len(generated_rooms) == 0:
+            generated_rooms.append(new_room)
             return True
 
-        for room in generatedRooms:
-            if not roomsIntersect(room, newRoom):
-                generatedRooms.append(newRoom)
+        for room in generated_rooms:
+            if not rooms_intersect(room, new_room):
+                generated_rooms.append(new_room)
                 return True
             
     return False
 
 def gen_map():
-    global generatedRooms
+    global generated_rooms
     global stationary
 
-    generatedRooms = []
+    generated_rooms = []
     stationary = [] 
+    joinable = []
 
     for room in range(ROOMS):
         try_gen_room()
 
-    while len(generatedRooms) != 0:
+    joinable = generated_rooms.copy()
+
+    stationary.append(generated_rooms[0])
+    joinable.remove(generated_rooms[0])
+
+    while len(joinable) != 0:
+        closest_pair = min(((a, b, distance_between_rooms(a, b)) for a in stationary for b in joinable), key=lambda x: x[2], default=None) 
         
+        if closest_pair:
+            stat, join, dist = closest_pair
+
+            if try_join_rooms(stat, join):
+                stationary.append(join)
+            else:
+                generated_rooms.remove(join)
+
+            joinable.remove(join)
 
 
-    print(generatedRooms)
+
+
+    print(generated_rooms)
 
 
 gen_map()
