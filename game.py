@@ -1,6 +1,6 @@
 from mapgen import *
 import pygame
-import math 
+import math
 
 TEMP_WALL = 2
 
@@ -29,7 +29,6 @@ display = pygame.display.set_mode((WIDTH, HEIGHT))
 player_coords = {'x': 2, 'y': 2}
 player_rot = HALF_PI
 player_rotation = {'x': 0, 'y': -1}
-
 
 FOV = HALF_PI / 2
 WALK_SPEED = 2
@@ -92,8 +91,10 @@ def input_handler(delta_time):
     turn_delta = - pygame.mouse.get_rel()[0] * TURN_SPEED
 
     old_player_rotation = player_rotation.copy()
-    player_rotation['x'] = (old_player_rotation['x'] * math.cos(turn_delta) - old_player_rotation['y'] * math.sin(turn_delta))
-    player_rotation['y'] = (old_player_rotation['x'] * math.sin(turn_delta) + old_player_rotation['y'] * math.cos(turn_delta))
+    player_rotation['x'] = (
+                old_player_rotation['x'] * math.cos(turn_delta) - old_player_rotation['y'] * math.sin(turn_delta))
+    player_rotation['y'] = (
+                old_player_rotation['x'] * math.sin(turn_delta) + old_player_rotation['y'] * math.cos(turn_delta))
 
     old_camera_plane = camera_plane.copy()
     camera_plane['x'] = (old_camera_plane['x'] * math.cos(turn_delta) - old_camera_plane['y'] * math.sin(turn_delta))
@@ -108,10 +109,11 @@ def input_handler(delta_time):
     if 'a' in move:
         try_move_right(delta_time, 1)
 
+
 # -----------------------------------------------------------------------------------------------
 
 
-def load_image(image, darken, colorKey = None):
+def load_image(image, darken, colorKey=None):
     ret = []
     if colorKey is not None:
         image.set_colorkey(colorKey)
@@ -127,6 +129,14 @@ def load_image(image, darken, colorKey = None):
     return ret
 
 
+def distance_fog(distance, scaled_texture):
+    dark_surface = pygame.Surface(scaled_texture.get_size())
+    dark_surface.fill((255 * distance, 255 * distance, 255 * distance))
+    scaled_texture.blit(dark_surface, (0, 0), special_flags=pygame.BLEND_RGB_MULT)
+
+    return scaled_texture
+
+
 def ray_cast_better():
     global background
     global texture
@@ -134,16 +144,16 @@ def ray_cast_better():
 
     w = WIDTH
     h = HEIGHT - 150
-    
+
     if background is None:
         background = pygame.transform.scale(pygame.image.load("imgs/bg.png").convert(), (w, h))
-    
-    display.blit(background, (0, 0)) 
+
+    display.blit(background, (0, 0))
 
     z_buffer = []
 
     for x in range(w):
-        camera_x = float(2*x / float(w) - 1)
+        camera_x = float(2 * x / float(w) - 1)
         ray_pos_x = player_coords['x']
         ray_pos_y = player_coords['y']
         ray_dir_x = player_rotation['x'] + camera_x * camera_plane['x']
@@ -153,13 +163,13 @@ def ray_cast_better():
         map_x = int(ray_pos_x)
         map_y = int(ray_pos_y)
 
-        if ray_dir_x== 0: 
+        if ray_dir_x == 0:
             ray_dir_x = 0.00001
         d_dist_x = math.sqrt(1 + (ray_dir_y ** 2) / (ray_dir_x ** 2))
-        if ray_dir_y== 0: 
+        if ray_dir_y == 0:
             ray_dir_y = 0.00001
         d_dist_y = math.sqrt(1 + (ray_dir_x ** 2) / (ray_dir_y ** 2))
-        
+
         hit = False
         side = 0
 
@@ -169,14 +179,14 @@ def ray_cast_better():
         else:
             step_x = 1
             side_dist_x = (map_x + 1 - ray_pos_x) * d_dist_x
-    
+
         if ray_dir_y < 0:
             step_y = - 1
             side_dist_y = (ray_pos_y - map_y) * d_dist_y
         else:
             step_y = 1
-            side_dist_y = (map_y + 1.0 - ray_pos_y) * d_dist_y 
-        
+            side_dist_y = (map_y + 1.0 - ray_pos_y) * d_dist_y
+
         while not hit:
             if side_dist_x < side_dist_y:
                 side_dist_x += d_dist_x
@@ -187,7 +197,8 @@ def ray_cast_better():
                 map_y += step_y
                 side = 1
 
-            if (MAP[int(map_x)][int(map_y)] == TEMP_WALL) or math.sqrt((map_x - ray_pos_x)**2 + (map_y - ray_pos_y)**2) > 12:
+            if (MAP[int(map_x)][int(map_y)] == TEMP_WALL) or math.sqrt(
+                    (map_x - ray_pos_x) ** 2 + (map_y - ray_pos_y) ** 2) > 12:
                 hit = 1
 
         if side == 0:
@@ -195,13 +206,13 @@ def ray_cast_better():
         else:
             perp_wall_dist = (abs((map_y - ray_pos_y + (1 - step_y) / 2) / ray_dir_y))
 
-        if perp_wall_dist == 0: 
+        if perp_wall_dist == 0:
             perp_wall_dist = 0.00001
-        
-        line_height = abs(int(h / perp_wall_dist)) 
-        
-        draw_start = - line_height / 2 + h / 2 
-        draw_end = line_height / 2 + h / 2 
+
+        line_height = abs(int(h / perp_wall_dist))
+
+        draw_start = - line_height / 2 + h / 2
+        draw_end = line_height / 2 + h / 2
 
         if side == 1:
             wall_x = ray_pos_x + ((map_y - ray_pos_y + (1 - step_y) / 2) / ray_dir_y) * ray_dir_x
@@ -209,8 +220,8 @@ def ray_cast_better():
             wall_x = ray_pos_y + ((map_x - ray_pos_x + (1 - step_x) / 2) / ray_dir_x) * ray_dir_y
         wall_x -= math.floor((wall_x))
 
-        tex_x = int(wall_x * float(TEXTURE_WIDTH)) 
-        
+        tex_x = int(wall_x * float(TEXTURE_WIDTH))
+
         if side == 0 and ray_dir_x > 0:
             tex_x = TEXTURE_WIDTH - tex_x - 1
         if side == 1 and ray_dir_y < 0:
@@ -218,17 +229,14 @@ def ray_cast_better():
 
         if line_height > 10000:
             line_height = 10000
-            draw_start = -5000 + h/2
-            draw_end = 5000 + h/2
+            draw_start = -5000 + h / 2
+            draw_end = 5000 + h / 2
 
-        A = max(1 - ((math.sqrt((map_x - ray_pos_x)**2 + (map_y - ray_pos_y)**2)) / 11), 0)
+        A = max(1 - ((math.sqrt((map_x - ray_pos_x) ** 2 + (map_y - ray_pos_y) ** 2)) / 11), 0)
         # A = 1
-        
-        scaled_texture = pygame.transform.scale(texture[tex_x], (1, line_height))
 
-        dark_surface = pygame.Surface(scaled_texture.get_size())
-        dark_surface.fill((255 * A, 255 * A, 255 * A))
-        scaled_texture.blit(dark_surface, (0, 0), special_flags=pygame.BLEND_RGB_MULT)
+        scaled_texture = distance_fog(A, pygame.transform.scale(texture[tex_x], (1, line_height)))
+
         display.blit(scaled_texture, (x, draw_start))
 
         z_buffer.append(perp_wall_dist)
@@ -247,6 +255,7 @@ def ray_cast_better():
         #         return -1
 
         # To sort the list of sprites:
+
     def sprite_distance(sprite):
         # Calculate the distance from the player to the sprite
         return (sprite.coords[0] - player_coords['x']) ** 2 + (sprite.coords[1] - player_coords['y']) ** 2
@@ -279,14 +288,19 @@ def ray_cast_better():
 
         if sprite_height < 1000:
             for stripe in range(draw_start_x, draw_end_x):
-                tex_x = int(int(256 * (stripe - (- sprite_width / 2 + sprite_surface_x)) * TEXTURE_WIDTH / sprite_width) / 256)
+                tex_x = int(
+                    int(256 * (stripe - (- sprite_width / 2 + sprite_surface_x)) * TEXTURE_WIDTH / sprite_width) / 256)
                 # print(f"hi {draw_start_x}")
                 # print(f"{stripe}, {len(z_buffer)}")
                 # print(tex_x)
                 if stripe >= len(z_buffer) or stripe < 0:
                     continue
                 if 0 < transform_y < z_buffer[stripe] and stripe < w:
-                    display.blit(pygame.transform.scale(sprite.texture[tex_x], (1, sprite_height)), (stripe, draw_start_y))
+                    A = min(sprite_height / 400, 1)
+
+                    scaled_texture = distance_fog(A, pygame.transform.scale(sprite.texture[tex_x], (1, sprite_height)))
+                    display.blit(scaled_texture,
+                                 (stripe, draw_start_y))
 
 
 def render_hud():
@@ -312,10 +326,8 @@ def init():
     global texture
     global sprites
 
-
     background = None
     texture = load_image(pygame.image.load("imgs/bluestone.png").convert(), False)
-
 
     pygame.event.set_grab(True)
     pygame.mouse.set_visible(False)
@@ -330,7 +342,8 @@ def init():
     camera_plane = {'x': 0, 'y': 0.66}
 
     sprites = []
-    gobbo = Sprite((start_pos[0] + 1, start_pos[1] + 2), load_image(pygame.image.load("imgs/barrel.png").convert(), False, colorKey=(0, 0, 0)))
+    gobbo = Sprite((start_pos[0] + 1, start_pos[1] + 2),
+                   load_image(pygame.image.load("imgs/barrel.png").convert(), False, colorKey=(0, 0, 0)))
     sprites.append(gobbo)
 
     last_pos = start_pos
