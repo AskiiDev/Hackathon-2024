@@ -6,15 +6,17 @@ MAP = [[1, 1, 1, 1, 1, 1, 1],
        [1, 0, 0, 0, 0, 0, 1],
        [1, 0, 0, 0, 0, 0, 1],
        [1, 0, 0, 0, 0, 0, 1],
-       [1, 0, 1, 0, 1, 0, 1],
+       [1, 0, 1, 0, 2, 0, 1],
        [1, 0, 1, 1, 1, 0, 1],
        [1, 0, 0, 0, 0, 0, 1],
        [1, 1, 1, 1, 1, 1, 1]]
 
+TEMP_WALL = 2
+
 MAP_WIDTH = len(MAP)
 MAP_HEIGHT = len(MAP[0])
 
-
+HUD_OFFSET = 150
 WIDTH = 800
 HEIGHT = 600
 
@@ -59,11 +61,11 @@ def try_move(vx, vy):
     dy = vx * WALK_SPEED
 
     player_coords['x'] += dx
-    if MAP[int(player_coords['x'])][int(player_coords['y'])] == 1:
+    if MAP[int(player_coords['x'])][int(player_coords['y'])] == TEMP_WALL:
         player_coords['x'] -= dx
 
     player_coords['y'] += dy
-    if MAP[int(player_coords['x'])][int(player_coords['y'])] == 1:
+    if MAP[int(player_coords['x'])][int(player_coords['y'])] == TEMP_WALL:
         player_coords['y'] -= dy
 
 
@@ -121,13 +123,17 @@ def ray_cast():
             if zx < 0 or zx >= MAP_WIDTH or zy < 0 or zy >= MAP_HEIGHT:
                 hit_wall = True
                 wall_distance = RENDER_DISTANCE
-            elif MAP[int(zx)][int(zy)] == 1:
+            elif MAP[int(zx)][int(zy)] == TEMP_WALL:
                 hit_wall = True
 
-        ceiling = HEIGHT / 2 - HEIGHT / wall_distance
-        floor = HEIGHT - 2 * ceiling
+        ceiling = (HEIGHT - 150) / 2 - (HEIGHT - 150) / wall_distance
+        floor = (HEIGHT - 150) - 2 * ceiling
 
-        pygame.draw.rect(display, (int(100 * (1 - wall_distance / RENDER_DISTANCE)), 0, 0), pygame.Rect(x, ceiling, 1, floor))
+        pygame.draw.rect(display, (int(200 * (1 - wall_distance / RENDER_DISTANCE)), 0, 0), pygame.Rect(x, ceiling, 1, floor))
+
+
+def render_hud():
+    pygame.draw.rect(display, (200, 200, 0), pygame.Rect(0, HEIGHT - 150, WIDTH, 150))
 
 
 def init():
@@ -136,11 +142,12 @@ def init():
     pygame.mouse.set_visible(False)
 
     while running:
-        display.fill((10, 10, 10))
+        display.fill((0, 0, 0))
         delta_time = 1 / clock.tick(60)
 
         input_handler(delta_time)
         ray_cast()
+        render_hud()
 
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
