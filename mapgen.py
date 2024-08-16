@@ -1,14 +1,16 @@
 import random
 import math
+import numpy as np
+
 import pygame
 
-WIDTH = 30
-HEIGHT = 30
+WIDTH = 10
+HEIGHT = 10
 
-ROOMS = 30
+ROOMS = 3
 
 ROOM_MIN = 5
-ROOM_MAX = 15
+ROOM_MAX = 5
 
 SHIFTS = 4
 
@@ -72,12 +74,13 @@ def try_join_rooms(static_room, moving_room):
         best_transform = (0,0)
 
         for transform in transforms:
-            new_x = moving_room['x']['coords'] + transform[0] 
-            new_y = moving_room['y']['coords'] + transform[1] 
+            new_x = moving_room['coords']['x'] + transform[0] 
+            new_y = moving_room['coords']['y'] + transform[1] 
 
             new_distance = distance_between_rooms(static_room, {"coords": {"x": new_x, "y": new_y}, "size": moving_room["size"]})
 
-            if new_distance < smallest_distance and not any (x != static_room and x != moving_room and not (rooms_intersect(moving_room, x) and rooms_intersect(x, moving_room)) for x in joinable):
+            if (new_distance < smallest_distance 
+                    and not any (x != static_room and x != moving_room and not (rooms_intersect(moving_room, x) and rooms_intersect(x, moving_room)) for x in joinable)):
                 smallest_distance = new_distance
                 best_transform = transform
         
@@ -94,6 +97,17 @@ def try_join_rooms(static_room, moving_room):
                 if times_shifted >= SHIFTS:
                     return True
     return False
+
+def gen_map_grid(rooms):
+    grid = np.zeros((WIDTH, HEIGHT), dtype=np.uint8) 
+
+    for room in rooms:
+        x_start, x_end = room["coords"]['x'], room["coords"]['x'] + room["size"]['x']
+        y_start, y_end = room["coords"]['y'], room["coords"]['y'] + room["size"]['y']
+        grid[x_start:x_end, y_start:y_end] = 1
+    
+    print(grid)
+
 
 def gen_map():
     global generated_rooms
@@ -112,11 +126,20 @@ def gen_map():
     stationary.append(generated_rooms[0])
     joinable.remove(generated_rooms[0])
 
-    while len(joinable) != 0:
+    print(stationary)
+    print(joinable)
+
+    while len(joinable) > 0:
         closest_pair = min(((a, b, distance_between_rooms(a, b)) for a in stationary for b in joinable), key=lambda x: x[2], default=None) 
         
         if closest_pair:
+            
             stat, join, dist = closest_pair
+
+            print(stat)
+            print(join)
+            print(dist)
+            quit()
 
             if try_join_rooms(stat, join):
                 stationary.append(join)
@@ -132,3 +155,4 @@ def gen_map():
 
 
 gen_map()
+gen_map_grid()
