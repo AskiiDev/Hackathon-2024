@@ -145,10 +145,10 @@ def ray_cast_better():
     w = WIDTH
     h = HEIGHT - 150
 
-    if background is None:
-        background = pygame.transform.scale(pygame.image.load("imgs/bg.png").convert(), (w, h))
+    #if background is None:
+        #background = pygame.transform.scale(pygame.image.load("imgs/bg.png").convert(), (w, h))
 
-    display.blit(background, (0, 0))
+    #display.blit(background, (0, 0))
 
     z_buffer = []
 
@@ -305,8 +305,9 @@ def ray_cast_better():
 
 
 def render_hud():
-    pygame.draw.rect(display, (100, 100, 100), pygame.Rect(0, HEIGHT - 150, WIDTH, 150))
-    # display.blit(pygame.transform.scale(render_map(get_stationary()), (150, 150)), (0, HEIGHT - 150))
+    hud = pygame.transform.scale(pygame.image.load("imgs/HUD.png").convert_alpha(), (WIDTH, HEIGHT))
+
+    display.blit(hud, (0, 0))
 
 
 class Sprite:
