@@ -36,7 +36,7 @@ player_rot = 0
 
 FOV = HALF_PI / 2
 WALK_SPEED = 1
-TURN_SPEED = 5
+TURN_SPEED = 0.003
 
 MOVE_MAP = {pygame.K_w: 'w',
             pygame.K_s: 's',
@@ -75,14 +75,19 @@ def try_move_right(delta, rv):
     rvx, rvy = get_right_vector(player_rot)
     try_move(delta * rvx * rv, delta * rvy * rv)
 
-    
+
 def turn():
+    pass
 
 
+def input_handler(delta_time):
+    global player_rot
 
-def input_handler():
     pressed = pygame.key.get_pressed()
     move = [MOVE_MAP[key] for key in MOVE_MAP if pressed[key]]
+
+    pygame.mouse.set_pos(100, 100)
+    player_rot += pygame.mouse.get_rel()[0] * TURN_SPEED
 
     if 'w' in move:
         try_move_forward(delta_time, 1)
@@ -117,25 +122,33 @@ def ray_cast():
                 wall_distance = RENDER_DISTANCE
             elif MAP[int(zx)][int(zy)] == 1:
                 hit_wall = True
-        #ceiling = 200 * (wall_distance / RENDER_DISTANCE)**2
+
         ceiling = HEIGHT / 2 - HEIGHT / wall_distance
         floor = HEIGHT - 2 * ceiling
-
-        print(ceiling)
 
         pygame.draw.rect(display, (int(100 * (1 - wall_distance / RENDER_DISTANCE)), 0, 0), pygame.Rect(x, ceiling, 1, floor))
 
 
+def init():
+    global running
+    pygame.event.set_grab(True)
+    pygame.mouse.set_visible(False)
 
-while running:
-    display.fill((0, 0, 0))
-    delta_time = 1 / clock.tick(60)
+    while running:
+        display.fill((0, 0, 0))
+        delta_time = 1 / clock.tick(60)
 
-    input_handler()
-    ray_cast()
+        input_handler(delta_time)
+        ray_cast()
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    quit()
+            if event.type == pygame.QUIT:
+                running = False
 
-    pygame.display.flip()
+        pygame.display.flip()
+
+
+init()
