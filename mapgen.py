@@ -1,6 +1,6 @@
 import random
 import math
-
+import pygame
 
 WIDTH = 30
 HEIGHT = 30
@@ -9,6 +9,8 @@ ROOMS = 30
 
 ROOM_MIN = 5
 ROOM_MAX = 15
+
+SHIFTS = 4
 
 MAX_TRIES = 100
 
@@ -51,9 +53,52 @@ def try_gen_room():
             
     return False
 
+def try_join_rooms(static_room, moving_room):
+    global stationary
+    global joinable
+
+    stuck = False
+    distance = distance_between_rooms(static_room, moving_room) 
+
+    transforms = [(-1, -1), (0, -1), (1, -1),
+              (-1, 0), (1, 0),
+              (-1, 1), (0, 1), (1, 1)]
+
+    x_max, y_max = WIDTH - moving_room["size"]['x'], HEIGHT - moving_room["size"]['y']
+
+    while not stuck:
+        stuck = True
+        smallest_distance = distance 
+        best_transform = (0,0)
+
+        for transform in transforms:
+            new_x = moving_room['x']['coords'] + transform[0] 
+            new_y = moving_room['y']['coords'] + transform[1] 
+
+            new_distance = distance_between_rooms(static_room, {"coords": {"x": new_x, "y": new_y}, "size": moving_room["size"]})
+
+            if new_distance < smallest_distance and not any (x != static_room and x != moving_room and not (rooms_intersect(moving_room, x) and rooms_intersect(x, moving_room)) for x in joinable):
+                smallest_distance = new_distance
+                best_transform = transform
+        
+        if best_transform != (0, 0):
+            stuck = False
+
+            moving_room["coords"]['x'] += best_transform[0]
+            moving_room["coords"]['y'] += best_transform[1]
+
+            dist = smallest_distance
+
+            if not rooms_intersect(static_room, moving_room):
+                times_shifted += 1
+                if times_shifted >= SHIFTS:
+                    return True
+    return False
+
 def gen_map():
     global generated_rooms
     global stationary
+    global joinable
 
     generated_rooms = []
     stationary = [] 
