@@ -17,8 +17,8 @@ RENDER_DISTANCE = 10
 ACCURACY = 2
 RAY_STEP_SIZE = 0.1
 
-TEXTURE_WIDTH = 64
-TEXTURE_HEIGHT = 64
+TEXTURE_WIDTH = 256
+TEXTURE_HEIGHT = 256
 
 running = True
 
@@ -268,6 +268,7 @@ def ray_cast_better():
         sprite_x = sprite.coords[0] - player_coords['x']
         sprite_y = sprite.coords[1] - player_coords['y']
 
+
         inv_det = 1.0 / (camera_plane['x'] * player_rotation['y'] - player_rotation['x'] * camera_plane['y'])
 
         transform_x = inv_det * (player_rotation['y'] * sprite_x - player_rotation['x'] * sprite_y)
@@ -289,7 +290,7 @@ def ray_cast_better():
         if sprite_height < 1000:
             for stripe in range(draw_start_x, draw_end_x):
                 tex_x = int(
-                    int(256 * (stripe - (- sprite_width / 2 + sprite_surface_x)) * TEXTURE_WIDTH / sprite_width) / 256)
+                    int(256 * (stripe - (- sprite_width / 2 + sprite_surface_x)) * sprite.res[0] / sprite_width) / 256)
                 # print(f"hi {draw_start_x}")
                 # print(f"{stripe}, {len(z_buffer)}")
                 # print(tex_x)
@@ -309,9 +310,10 @@ def render_hud():
 
 
 class Sprite:
-    def __init__(self, coords, texture):
+    def __init__(self, coords, texture, res):
         self.coords = coords
         self.texture = texture
+        self.res = res
 
 
 def init():
@@ -327,7 +329,7 @@ def init():
     global sprites
 
     background = None
-    texture = load_image(pygame.image.load("imgs/bluestone.png").convert(), False)
+    texture = load_image(pygame.image.load("imgs/wall.png").convert(), False)
 
     pygame.event.set_grab(True)
     pygame.mouse.set_visible(False)
@@ -343,7 +345,7 @@ def init():
 
     sprites = []
     gobbo = Sprite((start_pos[0] + 1, start_pos[1] + 2),
-                   load_image(pygame.image.load("imgs/barrel.png").convert(), False, colorKey=(0, 0, 0)))
+                   load_image(pygame.image.load("imgs/barrel.png").convert(), False, colorKey=(0, 0, 0)), (64, 64))
     sprites.append(gobbo)
 
     last_pos = start_pos
