@@ -26,6 +26,8 @@ generated_rooms = []
 joinable = []
 stationary = []
 
+def get_midpoint(room):
+    return (room["coords"]['x'] + room["size"]["x"] // 2, room["coords"]['y'] + room["size"]["y"] // 2)
 
 def distance_between_rooms(room1, room2):
     mid_a_x, mid_a_y = room1["coords"]['x'] + room1["size"]["x"] // 2, room1["coords"]['y'] + room1["size"]["y"] // 2
@@ -141,10 +143,7 @@ def gen_map_grid(rooms):
     # Update the grid using the mask
     grid[mask] = 2
 
-    # Update the grid using the mask
-    grid[mask] = 2
-
-    print(grid)
+    return grid
 
 def gen_map():
     global stationary
@@ -176,6 +175,13 @@ def gen_map():
 
             joinable.remove(join)
 
+def get_start_pos():
+    global stationary
+    return get_midpoint(stationary[0])
+
+def get_end_pos():
+    global stationary
+    return get_midpoint(stationary[-1])
 
 gen_map()
-gen_map_grid(generated_rooms)
+# gen_map_grid(generated_rooms)
