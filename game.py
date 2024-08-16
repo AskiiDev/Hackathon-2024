@@ -6,8 +6,8 @@ MAP = [[1, 1, 1, 1, 1, 1, 1],
        [1, 0, 0, 0, 0, 0, 1],
        [1, 0, 0, 0, 0, 0, 1],
        [1, 0, 0, 0, 0, 0, 1],
-       [1, 0, 0, 1, 0, 0, 1],
-       [1, 0, 0, 0, 0, 0, 1],
+       [1, 0, 1, 0, 1, 0, 1],
+       [1, 0, 1, 1, 1, 0, 1],
        [1, 0, 0, 0, 0, 0, 1],
        [1, 1, 1, 1, 1, 1, 1]]
 
@@ -59,10 +59,11 @@ def try_move(vx, vy):
     dy = vx * WALK_SPEED
 
     player_coords['x'] += dx
-    player_coords['y'] += dy
-
     if MAP[int(player_coords['x'])][int(player_coords['y'])] == 1:
         player_coords['x'] -= dx
+
+    player_coords['y'] += dy
+    if MAP[int(player_coords['x'])][int(player_coords['y'])] == 1:
         player_coords['y'] -= dy
 
 
@@ -135,7 +136,7 @@ def init():
     pygame.mouse.set_visible(False)
 
     while running:
-        display.fill((0, 0, 0))
+        display.fill((10, 10, 10))
         delta_time = 1 / clock.tick(60)
 
         input_handler(delta_time)
