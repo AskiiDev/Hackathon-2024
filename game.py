@@ -1,8 +1,6 @@
-import mapgen
+#import mapgen
 import pygame
 from math import pi, sin, cos
-
-
 
 MAP = [[1, 1, 1, 1, 1, 1, 1],
        [1, 0, 0, 0, 0, 0, 1],
@@ -14,8 +12,15 @@ MAP = [[1, 1, 1, 1, 1, 1, 1],
        [1, 1, 1, 1, 1, 1, 1]]
 
 
-HALF_PI = 1.5707963267
+WIDTH = 640
+HEIGHT = 480
+
+HALF_PI = 1.57
+
+RENDER_DISTANCE = 20
 ACCURACY = 2
+RAY_STEP_SIZE = 0.1
+
 
 running = True
 
@@ -29,8 +34,14 @@ player_rot = 0
 FOV = HALF_PI / 2
 WALK_SPEED = 1
 TURN_SPEED = 5
-print('a')
 
+MOVE_MAP = {pygame.K_w: 'w',
+            pygame.K_s: 's',
+            pygame.K_a: 'a',
+            pygame.K_d: 'd'}
+
+
+# -----------------------------------------------------------------------------------------------
 
 def get_forward_vector(theta):
     return round(cos(theta), ACCURACY), round(sin(theta), ACCURACY)
@@ -59,29 +70,51 @@ def try_move_forward(delta, fv):
 
 def try_move_right(delta, rv):
     rvx, rvy = get_right_vector(player_rot)
-    print(rvx, rvy)
     try_move(delta * rvx * rv, delta * rvy * rv)
+
+
+def input_handler():
+    pressed = pygame.key.get_pressed()
+    move = [MOVE_MAP[key] for key in MOVE_MAP if pressed[key]]
+
+    if 'w' in move:
+        try_move_forward(delta_time, 1)
+    if 's' in move:
+        try_move_forward(delta_time, -1)
+    if 'a' in move:
+        try_move_right(delta_time, 1)
+    if 'd' in move:
+        try_move_right(delta_time, -1)
+
+# -----------------------------------------------------------------------------------------------
+
+
+def ray_cast():
+    for x in range(WIDTH):
+        ray_angle = (player_rot - FOV / 2) + (x / WIDTH) * FOV
+        eye_x = sin(ray_angle)
+        eye_y = cos(ray_angle)
+
+        wall_distance = 0
+
+        hit_wall = False
+
+        while not hit_wall and wall_distance < RENDER_DISTANCE:
+            wall_distance += RAY_STEP_SIZE
+
+            zx = player_coords['x'] + eye_x * wall_distance
+            zy = player_coords['y'] + eye_y * wall_distance
+
 
 
 while running:
     delta_time = 1 / clock.tick(60)
 
-    for event in pygame.event.get():
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_w:
-                try_move_forward(delta_time, 1)
-            if event.key == pygame.K_s:
-                try_move_forward(delta_time, -1)
-            if event.key == pygame.K_a:
-                try_move_right(delta_time, 1)
-            if event.key == pygame.K_d:
-                try_move_right(delta_time, -1)
-            if event.key == pygame.K_LEFT:
-                player_rot += pi/8
-            print(player_coords)
+    input_handler()
+    ray_cast()
 
+    for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
     pygame.display.flip()
-
