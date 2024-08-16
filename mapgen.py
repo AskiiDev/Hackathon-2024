@@ -175,6 +175,9 @@ def gen_map():
 
             joinable.remove(join)
 
+def get_stationart():
+    return stationary
+
 def get_start_pos():
     global stationary
     return get_midpoint(stationary[0])
