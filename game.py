@@ -713,6 +713,7 @@ def init():
     lower_hand = False
     raise_hand = False
     attack = False
+    
     held_spell = "fireball"
 
     textures = {0: load_image(pygame.image.load("imgs/wall.png").convert(), False),
