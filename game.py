@@ -645,7 +645,7 @@ def spawn_monster():
     option = random.randint(0, 2)
 
     if option == 0:
-        sprites.append(Sprite(location, ghost_images[0], (256, 256), 0.3, s_type="ghost"))
+        sprites.append(Sprite(location, ghost_images[0], (256, 256), 0.3, s_type="ghost", solid=False))
     if option == 1:
         sprites.append(Sprite(location, goblin_images[0], (256, 256), 0.3, s_type="goblin"))
     if option == 2:
@@ -789,7 +789,7 @@ class Sprite:
             if self.s_type == "ghost":
                 self.texture = ghost_images[anim_frames % 3]
 
-                player_x, player_y = player_coords['x'], player_coords['y']
+                player_x, player_y = player_coords['x'] - 0.5, player_coords['y'] - 0.5
                 ghost_x, ghost_y = self.coords
 
                     # Calculate the direction vector from the ghost to the player
@@ -805,17 +805,20 @@ class Sprite:
                     # Set the speed at which the ghost moves towards the player
                 ghost_speed = 0.02  # Adjust this value for desired speed
 
+                if distance >= 0.35:
                     # Update the ghost's position to move along the direction vector
-                ghost_x += direction_x * ghost_speed
-                ghost_y += direction_y * ghost_speed
-
+                    ghost_x += direction_x * ghost_speed
+                    ghost_y += direction_y * ghost_speed
+                
+                if distance < 0.35:
+                    damage_player(1)
 
                 self.coords = (ghost_x, ghost_y)
 
             if self.s_type == "goblin":
                 if not self.attacking:
                     self.texture = goblin_images[0]
-                    player_x, player_y = player_coords['x'], player_coords['y']
+                    player_x, player_y = player_coords['x'] - 0.5, player_coords['y'] - 0.5
                     goblin_x, goblin_y = self.coords
 
                     # Calculate the direction vector and distance from the goblin to the player
@@ -869,7 +872,7 @@ class Sprite:
                                 direction_x /= distance
                                 direction_y /= distance
 
-                            projectile = (Sprite((self.coords[0] - 0.5 + (0.5 * direction_x), self.coords[1] - 0.5 + (0.5 * direction_y)), 
+                            projectile = (Sprite((self.coords[0] + (0.5 * direction_x), self.coords[1] + (0.5 * direction_y)), 
                                                  fireball_proj, (256,256), 0.1, solid=False, invulnerable=True, 
                                                  speed=0.1, dir=(direction_x, direction_y), s_type="proj"))
                             sprites.append(projectile)
@@ -883,7 +886,7 @@ class Sprite:
             if self.s_type == "ogre":
                 if not self.attacking:
                     self.texture = ogre_images[0]
-                    player_x, player_y = player_coords['x'], player_coords['y']
+                    player_x, player_y = player_coords['x'] + 0.5, player_coords['y'] + 0.5
                     ogre_x, ogre_y = self.coords
 
                     # Calculate the direction vector and distance from the goblin to the player
@@ -937,8 +940,8 @@ class Sprite:
 
                         if ogre_anim[self.frame] == ogre_images[6] and not self.has_damaged:
                             self.has_damaged = True
-                            direction_x = player_coords['x'] - self.coords[0]
-                            direction_y = player_coords['y'] - self.coords[1]
+                            direction_x = player_coords['x'] + 0.5 - self.coords[0]
+                            direction_y = player_coords['y'] + 0.5 - self.coords[1]
                             distance = math.hypot(direction_x, direction_y)
 
                             if distance < 0.5:
@@ -1077,7 +1080,7 @@ def init():
 
     load_level()
 
-    for i in range(level):
+    for i in range(5):
         spawn_monster()
     
     # pygame.mixer.music.play()
@@ -1157,15 +1160,17 @@ def init():
                 agg.remove(i.coords)
 
             i.simulate()
+        
+        check_player_sprite_collision(player_coords['x'], player_coords['y'])
 
-        if check_player_sprite_collision(player_coords['x'], player_coords['y']):
-            damage_player(1)
+        # if check_player_sprite_collision(player_coords['x'], player_coords['y']):
+        #     damage_player(1)
 
         ray_cast_better()
         render_weapon(current_weapon_state, frames)
         
         if damage_frames > 0:
-            display.fill((10 * damage_frames ,0,0), special_flags=pygame.BLEND_ADD)
+            display.fill((min(255, 10 * damage_frames) ,0,0), special_flags=pygame.BLEND_ADD)
             damage_frames -= 1
 
         render_hud(frames)
