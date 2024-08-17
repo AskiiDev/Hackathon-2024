@@ -533,7 +533,7 @@ def check_sprite_collision(sprite1, sprite2):
 
 class Sprite:
     global anim_frames 
-    global player_health
+    
 
     def __init__(self, coords, texture, res, width, health=1, solid=True, s_type='default'):
         self.coords = coords
@@ -547,14 +547,15 @@ class Sprite:
     def handle_collision(self, sprite):
         pass
 
-    def hit_player():
-        pass
+    def hit_player(self):
+        global player_health
+        player_health -= 1
 
     def simulate(self):
         if self.s_type == "ghost":
             self.texture = ghost_images[ (anim_frames) % 3 ]
 
-            player_x, player_y = player_coords['x'], player_coords['y']
+            player_x, player_y = player_coords['x'] - 0.5, player_coords['y'] - 0.5
             ghost_x, ghost_y = self.coords
 
                 # Calculate the direction vector from the ghost to the player
@@ -574,8 +575,10 @@ class Sprite:
             ghost_x += direction_x * ghost_speed
             ghost_y += direction_y * ghost_speed
     
-    
-            self.coords = (ghost_x, ghost_y)
+            if distance <= 0.7:
+                self.hit_player()
+            else:
+                self.coords = (ghost_x, ghost_y)
 
 
 
@@ -699,8 +702,9 @@ def init():
         for i in sprites:
             i.simulate()
 
-        if check_player_sprite_collision(player_coords['x'], player_coords['y']):
-            player_health -= 1
+
+        # if check_player_sprite_collision(player_coords['x'], player_coords['y']):
+        #     player_health -= 1
 
 
 
