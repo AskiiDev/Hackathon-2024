@@ -310,6 +310,19 @@ def render_hud():
     display.blit(hud, (0, 0))
 
 
+def render_weapon(delta):
+    quantization_step = 6
+    hand = pygame.transform.scale(pygame.image.load("imgs/weapons/fist.png").convert_alpha(), (WIDTH, HEIGHT))
+
+    x_pos = int(15 * math.cos(delta / 10))
+    y_pos = int(10 * abs(math.sin(delta / 10)))
+
+    # Quantize the positions
+    x_pos = (x_pos // quantization_step) * quantization_step
+    y_pos = (y_pos // quantization_step) * quantization_step
+
+    display.blit(hand, (x_pos, 20 + y_pos))
+
 class Sprite:
     def __init__(self, coords, texture, res):
         self.coords = coords
@@ -328,6 +341,8 @@ def init():
     global background
     global texture
     global sprites
+
+    frames = 0
 
     background = None
     texture = load_image(pygame.image.load("imgs/wall.png").convert(), False)
@@ -352,14 +367,14 @@ def init():
     last_pos = start_pos
 
     while running:
+        frames += 1
         display.fill((0, 0, 0))
         delta_time = 1 / clock.tick(60)
 
         input_handler(delta_time)
         ray_cast_better()
+        render_weapon(frames)
         render_hud()
-        if (player_coords['x'], player_coords['y']) != last_pos:
-            pass
 
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
