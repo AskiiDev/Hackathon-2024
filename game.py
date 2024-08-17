@@ -12,6 +12,7 @@ barrels = []
 HANDS_LOWER_LIMIT = 600
 elapsed_time = 0
 
+held_spell = "punch"
 anim_frames = 0
 
 MAP_WIDTH = 0
@@ -281,6 +282,8 @@ fireball_proj = load_image(pygame.image.load("imgs/attacks/fireball/fireball_pro
 
 barrel_img = load_image(pygame.image.load("imgs/props/barrel.png"), False)
 barrel_destroyed_img = load_image(pygame.image.load("imgs/props/barrel_destroyed.png"), False)
+
+fireball_powerup = load_image(pygame.image.load("imgs/props/fireball_powerup.png"), False)
 
 
 def distance_fog(distance, scaled_texture):
@@ -639,6 +642,7 @@ class Sprite:
     global sprites
     global anim_frames
     global player_health
+    global held_spell
 
     def __init__(self, coords, texture, res, width, health=1, invulnerable=False, solid=True, s_type='default', speed=0, dir=(0,0)):
         self.coords = coords
@@ -666,7 +670,7 @@ class Sprite:
         if self.s_type == "barrel":
             self.texture = barrel_destroyed_img
             self.solid = False
-            # sprites.add()
+            sprites.append(Sprite(self.coords, fireball_powerup, (256,256), 1, solid=False, s_type="fireball_pu", invulnerable=True))
             return
         if self.invulnerable:
             return
@@ -679,9 +683,14 @@ class Sprite:
 
     def hit_player(self):
         global player_health
+        global held_spell
         if self.s_type == "proj":
             player_health -= 5
             sprites.remove(self)
+
+        if self.s_type == "fireball_pu":
+            sprites.remove(self)
+            held_spell = "fireball"
         
 
     def simulate(self):
