@@ -230,8 +230,11 @@ def gen_map(surface):
 
             joinable.remove(join)
         
-        
-        surface.blit(pygame.transform.scale(render_map(stationary), (750, 550)), (25,25))
+        hud = pygame.transform.scale(pygame.image.load("imgs/HUD.png").convert_alpha(), (800, 600))
+
+        surface.blit(pygame.transform.scale(render_map(stationary), (800, 450)), (0,0))
+
+        surface.blit(hud, (0, 0))
         pygame.display.flip()
 
 
