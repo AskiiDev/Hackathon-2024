@@ -13,6 +13,7 @@ lower_hand = False
 new_spell = "punch"
 
 damage_frames = 0
+agg = []
 
 player_health = 100
 sprites = []
@@ -622,6 +623,45 @@ def fire(max_distance):
     print("No hit detected.")
 
 
+
+def get_random_location_near_player(radius1, radius):
+    global agg
+    global MAP
+    global player_coords
+
+    grid = MAP
+
+    player_x, player_y = (int(player_coords['x']), int(player_coords['y']))
+    valid_locations = []
+
+    for x in range(max(0, player_x - radius), min(grid.shape[0], player_x + radius + 1)):
+        for y in range(max(0, player_y - radius), min(grid.shape[1], player_y + radius + 1)):
+            if grid[x, y] == 1:  # Check if it's a floor tile
+                if (x, y) not in agg:  # Check if it's not occupied
+                    distance = math.sqrt((x - player_x) ** 2 + (y - player_y) ** 2)
+                    if radius1 <= distance <= radius:
+                        valid_locations.append((x, y))
+
+    if valid_locations:
+        return random.choice(valid_locations)
+    else:
+        return None
+
+def spawn_monster():
+    global sprites
+    location = get_random_location_near_player(10, 15)
+    option = random.randint(0, 2)
+
+    if option == 0:
+        sprites.append(Sprite(location, ghost_images[0], (256, 256), 0.3, s_type="ghost"))
+    if option == 1:
+        sprites.append(Sprite(location, goblin_images[0], (256, 256), 0.3, s_type="goblin"))
+    if option == 2:
+        sprites.append(Sprite(location, ogre_images[0], (256, 256), 0.5, s_type="ogre"))
+    
+    # print(option)
+
+
 def check_player_sprite_collision(player_x, player_y):
     for sprite in sprites:
         if not sprite.solid:
@@ -1002,24 +1042,6 @@ def load_level():
 
     sprites = []
 
-    # barrel_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), barrel_img, (256,256), 0.5, s_type="barrel")
-    # sprites.append(barrel_test)
-
-    # ghost_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), ghost_images[1], (256,256), 0.5, health=5, solid=True, s_type="ghost")
-    # sprites.append(ghost_test)
-
-    # goblin_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), goblin_images[0], (256,256), 0.5, health=5, solid=True, s_type="goblin")
-    # sprites.append(goblin_test)
-
-    ogre_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), ogre_images[0], (256,256), 0.5, health=5, solid=True, s_type="ogre")
-    sprites.append(ogre_test)
-
-    # fireball_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), fireball_proj, (256,256), 0.1, dir=(player_rotation['x'], player_rotation['y']), speed=1, solid=True, s_type="proj")
-    # fireball_test = Sprite((start_pos[0] - 1, start_pos[1] - 1), fireball_proj, (256,256), 0.1, speed=0.01, dir=(player_rotation['x'],player_rotation['y']), s_type="proj")
-    # sprites.append(fireball_test)
-
-    # check_sprite_collision(gobbo, gobbo2)
-
     last_pos = start_pos
 
 
@@ -1036,6 +1058,7 @@ def init():
     global hands_y
     global held_spell
     global lower_hand
+    global agg
     global new_spell
     global damage_frames
 
@@ -1054,14 +1077,24 @@ def init():
 
     gen_map(display)
     frames = 0
+    
+    agg = []
 
     current_anim_frame = 0
     anim_counter = 0
 
     load_level()
+
+    for i in range(level):
+        spawn_monster()
+    
     # pygame.mixer.music.play()
 
     while running:
+        if frames % 300 == 0:
+            for i in range(level):
+                spawn_monster()
+
         frames += 1
         anim_frames = int(frames / 2)
         display.fill((0, 0, 0))
@@ -1115,16 +1148,22 @@ def init():
                 current_anim_frame = 0
 
         barrel_gen_range = 10
-        
         for i in barrels:
-            if math.hypot(player_coords['x'] - i[0], player_coords['y'] - i[1]) < barrel_gen_range :
+            if i in agg: 
+                continue
+            if math.hypot(player_coords['x'] - i[0], player_coords['y'] - i[1]) < barrel_gen_range:
+                agg.append((i[0], i[1]))
                 sprites.append(Sprite(i, barrel_img, (256,256), 0.3, s_type="barrel"))
-                barrels.remove(i)
+                # barrels.remove(i)
         
 
         input_handler(delta_time)
 
         for i in sprites:
+            if i.s_type == "barrel" and math.hypot(player_coords['x'] - i.coords[0], player_coords['y'] - i.coords[1]) > 12:
+                sprites.remove(i)
+                agg.remove(i.coords)
+
             i.simulate()
 
         if check_player_sprite_collision(player_coords['x'], player_coords['y']):
