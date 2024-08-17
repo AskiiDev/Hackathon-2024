@@ -550,11 +550,11 @@ def next_level():
     print(total_score)
     pygame.display.flip()
     
-    gen_map()
     pygame.time.wait(1000)
     display.fill(pygame.Color(0,0,0))
     
     print("Generating map...")
+    gen_map(display)
     pygame.display.flip()
 
     level += 1
@@ -595,8 +595,6 @@ def load_level():
     camera_plane = {'x': 0, 'y': 0.66}
 
 
-    display.blit(pygame.transform.scale(render_map(get_stationary()), (750, 550)), (25,25))
-    pygame.display.flip()
     pygame.time.wait(1000)
 
     sprites = []
@@ -630,7 +628,7 @@ def init():
     total_score = 0
     level = 0
 
-    gen_map()
+    gen_map(display)
     frames = 0
 
 

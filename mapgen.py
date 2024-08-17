@@ -4,13 +4,13 @@ import numpy as np
 
 import pygame
 
-WIDTH = 200
-HEIGHT = 150
+WIDTH = 100
+HEIGHT = 75
 
-ROOMS = 100
+ROOMS = 250
 
 ROOM_MIN = 3
-ROOM_MAX = 6
+ROOM_MAX = 7
 
 TRANSFORMS = [(-1, -1), (0, -1), (1, -1),
               (-1, 0), (1, 0),
@@ -19,7 +19,7 @@ TRANSFORMS = [(-1, -1), (0, -1), (1, -1),
 
 SHIFTS = 3
 
-MAX_TRIES = 10
+MAX_TRIES = 100
 
 generated_rooms = []
 joinable = []
@@ -193,12 +193,15 @@ def gen_map_grid(rooms):
 
     return grid
 
-def gen_map():
-    print("maps")
+def gen_map(surface):
     global stationary
     global joinable
     global discovered
+    global generated_rooms
 
+    generated_rooms = []
+    stationary = []
+    joinable = []
     discovered = []
 
     for i in range(ROOMS):
@@ -226,9 +229,11 @@ def gen_map():
                 generated_rooms.remove(join)
 
             joinable.remove(join)
+        
+        
+        surface.blit(pygame.transform.scale(render_map(stationary), (750, 550)), (25,25))
+        pygame.display.flip()
 
-    discovered.append(stationary[0])
-    discovered.append(stationary[-1])
 
 def render_map(rooms):
     colours = np.array([[0, 0, 0], [0, 0, 255], [255, 255, 0], [0,255,0], [0,255,0]], dtype=np.uint8)  # 3x3 array for RGB values
@@ -265,5 +270,5 @@ def get_real_end_pos():
     global stationary
     return get_midpoint(stationary[-1])
 
-gen_map()
+# gen_map()
 # print(gen_map_grid(stationary))
