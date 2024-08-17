@@ -6,6 +6,8 @@ import time
 TEMP_WALL = [0, 2, 3, 4]
 
 hands_y = 0
+
+player_health = 100
 sprites = []
 barrels = []
 
@@ -685,7 +687,7 @@ class Sprite:
         global player_health
         global held_spell
         if self.s_type == "proj":
-            player_health -= 10
+            damage_player(20)
             sprites.remove(self)
 
         if self.s_type == "fireball_pu":
@@ -887,14 +889,15 @@ class Sprite:
                             distance = math.hypot(direction_x, direction_y)
 
                             if distance < 0.5:
-                                player_health -= 10
+                                damage_player(10)
 
         self.prev_anim_frame = anim_frames
 
 
 
 def damage_player(amount):
-    p
+    global player_health
+    player_health = max(0, player_health - 1)
 
 
 def next_level():
