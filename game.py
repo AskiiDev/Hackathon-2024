@@ -430,7 +430,15 @@ def render_hud(delta):
 
     display.blit(hud, (0, 0))
     display.blit(arrow, (0, 20 + y_pos))
-    display.blit(faces["healthy"], (0, face_y_pos))
+
+    if player_health >= 60:
+        face = "healthy"
+    if 60 > player_health >= 30:
+        face = "neutral"
+    elif player_health < 30:
+        face = "hurt"
+
+    display.blit(faces[face], (0, face_y_pos))
 
     now = time.time()
     minutes, seconds = divmod(int(now - level_start_time), 60)
@@ -547,12 +555,12 @@ class Sprite:
     def handle_collision(self, sprite):
         pass
 
-    def hit_player():
+    def hit_player(self):
         pass
 
     def simulate(self):
         if self.s_type == "ghost":
-            self.texture = ghost_images[ (anim_frames) % 3 ]
+            self.texture = ghost_images[anim_frames % 3]
 
             player_x, player_y = player_coords['x'], player_coords['y']
             ghost_x, ghost_y = self.coords
@@ -682,7 +690,7 @@ def init():
 
     while running:
         frames += 1
-        anim_frames = int(frames / 6)
+        anim_frames = int(frames / 20)
         display.fill((0, 0, 0))
         delta_time = 1 / clock.tick(60)
 
@@ -692,9 +700,7 @@ def init():
             i.simulate()
 
         if check_player_sprite_collision(player_coords['x'], player_coords['y']):
-            player_health -= 1
-
-
+            player_health = max(0, player_health - 1)
 
         ray_cast_better()
         render_weapon(frames)
