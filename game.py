@@ -1047,7 +1047,7 @@ def init():
         display.fill((0, 0, 0))
         delta_time = 1 / clock.tick(60)
 
-        print(held_spell)
+        # print(held_spell)
 
         if attack:
             if frames - anim_counter >= ATTACKS[held_spell][current_anim_frame][1]:
