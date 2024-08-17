@@ -13,6 +13,7 @@ lower_hand = False
 new_spell = "punch"
 
 damage_frames = 0
+agg = []
 
 player_health = 100
 sprites = []
@@ -1028,6 +1029,7 @@ def init():
     global hands_y
     global held_spell
     global lower_hand
+    global agg
     global new_spell
     global damage_frames
 
@@ -1046,6 +1048,8 @@ def init():
 
     gen_map(display)
     frames = 0
+    
+    agg = []
 
     current_anim_frame = 0
     anim_counter = 0
@@ -1107,16 +1111,22 @@ def init():
                 current_anim_frame = 0
 
         barrel_gen_range = 10
-        
         for i in barrels:
-            if math.hypot(player_coords['x'] - i[0], player_coords['y'] - i[1]) < barrel_gen_range :
+            if i in agg: 
+                continue
+            if math.hypot(player_coords['x'] - i[0], player_coords['y'] - i[1]) < barrel_gen_range:
+                agg.append((i[0], i[1]))
                 sprites.append(Sprite(i, barrel_img, (256,256), 0.3, s_type="barrel"))
-                barrels.remove(i)
+                # barrels.remove(i)
         
 
         input_handler(delta_time)
 
         for i in sprites:
+            if i.s_type == "barrel" and math.hypot(player_coords['x'] - i.coords[0], player_coords['y'] - i.coords[1]) > 12:
+                sprites.remove(i)
+                agg.remove(i.coords)
+
             i.simulate()
 
         if check_player_sprite_collision(player_coords['x'], player_coords['y']):
