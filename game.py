@@ -77,7 +77,9 @@ faces = {
 }
 
 hud = pygame.transform.scale(pygame.image.load("imgs/HUD.png").convert_alpha(), (WIDTH, HEIGHT))
-hand = pygame.transform.scale(pygame.image.load("imgs/weapons/fist.png").convert_alpha(), (WIDTH, HEIGHT))
+
+punch = {0: pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist1.png").convert_alpha(), (WIDTH, HEIGHT)),
+         1: pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist1.png").convert_alpha(), (WIDTH, HEIGHT))}
 
 
 # -----------------------------------------------------------------------------------------------
@@ -468,7 +470,7 @@ def render_weapon(delta):
     x_pos = (x_pos // quantization_step) * quantization_step
     y_pos = (y_pos // quantization_step) * quantization_step
 
-    display.blit(hand, (x_pos, 20 + y_pos))
+    display.blit(punch[0], (x_pos, y_pos))
 
 
 def fire(max_distance):
@@ -532,6 +534,7 @@ def check_sprite_collision(sprite1, sprite2):
         sprite1.coords[0] + sprite1.width > sprite2.coords[0] and
         sprite1.coords[1] < sprite2.coords[1] + sprite2.width and
         sprite1.coords[1] + sprite1.width > sprite2.coords[1]):
+        
         print(f"Collision detected!")
         sprite1.handle_collision(sprite2)
         sprite2.handle_collision(sprite1)
@@ -708,6 +711,8 @@ def init():
 
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_z:
+                    start_punch()
                 if event.key == pygame.K_ESCAPE:
                     quit()
                 if event.key == pygame.K_TAB:
