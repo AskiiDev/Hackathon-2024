@@ -25,6 +25,7 @@ generated_rooms = []
 joinable = []
 stationary = []
 discovered = []
+barrels = []
 
 def get_midpoint(room):
     return (room["coords"]['x'] + room["size"]["x"] // 2, room["coords"]['y'] + room["size"]["y"] // 2)
@@ -193,6 +194,21 @@ def gen_map_grid(rooms):
 
     return grid
 
+def gen_barrels():
+    global barrels 
+    barrels = []
+
+    for i in stationary:
+        new_barrel = (random.randint(i['coords']['x'] + 1, i['coords']['x'] + i['size']['x'] - 1), random.randint(i['coords']['y'] + 1, i['coords']['y'] + i['size']['y'] - 1))
+        if new_barrel not in barrels:
+            barrels.append((random.randint(i['coords']['x'] + 1, i['coords']['x'] + i['size']['x'] - 1), random.randint(i['coords']['y'] + 1, i['coords']['y'] + i['size']['y'] - 1)))
+    
+    return barrels
+
+def get_barrels():
+    global barrels
+    return barrels
+
 def gen_map(surface):
     global stationary
     global joinable
@@ -203,6 +219,7 @@ def gen_map(surface):
     stationary = []
     joinable = []
     discovered = []
+
 
     for i in range(ROOMS):
         try_gen_room()

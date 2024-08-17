@@ -7,6 +7,7 @@ TEMP_WALL = [0, 2, 3, 4]
 
 hands_y = 0
 sprites = []
+barrels = []
 
 HANDS_LOWER_LIMIT = 600
 elapsed_time = 0
@@ -277,6 +278,7 @@ ogre_anim += [ogre_images[0]] * 3
 gore_pile = load_image(pygame.image.load("imgs/enemies/gorepile.png").convert_alpha(), False)
 
 fireball_proj = load_image(pygame.image.load("imgs/attacks/fireball/fireball_proj.png"), False)
+barrel_img = load_image(pygame.image.load("imgs/barrel.png"), False)
 
 
 def distance_fog(distance, scaled_texture):
@@ -917,6 +919,8 @@ def load_level():
     global score
     global player_health
 
+    global barrels
+
     player_health = 100
 
     score = 0
@@ -927,6 +931,7 @@ def load_level():
 
     MAP = gen_map_grid(get_stationary())
 
+
     MAP_WIDTH = len(MAP)
     MAP_HEIGHT = len(MAP[0])
     start_pos = get_start_pos()
@@ -934,6 +939,11 @@ def load_level():
     goal_coords = get_real_end_pos()
     player_rotation = {'x': -1, 'y': 0}
     camera_plane = {'x': 0, 'y': 0.66}
+
+    
+    gen_barrels()
+    barrels = get_barrels()
+    print(barrels)
 
 
     # pygame.time.wait(1000)
@@ -968,7 +978,7 @@ def init():
     global frames
     global anim_frames
     global player_health
-
+    global barrels
     global hands_y
 
     can_attack = True
@@ -1039,6 +1049,18 @@ def init():
                 raise_hand = False
                 can_attack = True
                 current_anim_frame = 0
+
+        barrel_gen_range = 15
+        array_np = np.array(barrels)
+        squared_distances = np.sum((array_np - (player_coords['x'], player_coords['y'])) ** 2, axis=1)
+        within_distance_indices = np.where(squared_distances <= barrel_gen_range**2)[0]
+        
+        within_distance = array_np[within_distance_indices]
+        remaining_array = np.delete(array_np, within_distance_indices, axis=0)
+        barrels = within_distance.tolist()
+        for i in remaining_array.tolist():
+            sprites.append(Sprite(i, barrel_img, (256,256), 0.3, s_type="barrel"))
+        
 
         input_handler(delta_time)
 
