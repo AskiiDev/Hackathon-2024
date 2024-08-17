@@ -79,15 +79,18 @@ faces = {
 
 hud = pygame.transform.scale(pygame.image.load("imgs/HUD.png").convert_alpha(), (WIDTH, HEIGHT))
 
-punch = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist1.png").convert_alpha(), (WIDTH, HEIGHT)), 2),
-         1: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.png").convert_alpha(), (WIDTH, HEIGHT)), 2),
-         2: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist3.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
-         3: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist4.png").convert_alpha(), (WIDTH, HEIGHT)), 13),
-         4: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist3.png").convert_alpha(), (WIDTH, HEIGHT)), 2),
-         5: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.png").convert_alpha(), (WIDTH, HEIGHT)), 2)}
+punch = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+         1: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist3.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+         2: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist4.png").convert_alpha(), (WIDTH, HEIGHT)), 9),
+         3: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist3.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
+         4: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.png").convert_alpha(), (WIDTH, HEIGHT)), 14)}
+
+fireball = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball1.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+            1: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball2.png").convert_alpha(), (WIDTH, HEIGHT)), 10)}
 
 ATTACKS = {
-    "punch": [punch, 4]
+    "punch": punch,
+    "fireball": fireball
 }
 
 # -----------------------------------------------------------------------------------------------
@@ -426,7 +429,7 @@ def render_hud(delta):
 
     # Usage
     angle_to_goal = get_angle_to_goal(player_coords, goal_coords)
-    arrow_texture = get_arrow_texture(-angle_to_goal, -player_rot)
+    arrow_texture = get_arrow_texture(-angle_to_goal, -math.atan2(-player_rotation['x'], player_rotation['y']))
 
     arrow = pygame.transform.scale(arrow_texture, (WIDTH, HEIGHT))
 
@@ -682,7 +685,8 @@ def init():
     global anim_frames
     global player_health
 
-    attack = None
+    attack = False
+    held_spell = "fireball"
 
     textures = {0: load_image(pygame.image.load("imgs/wall.png").convert(), False),
                 1: load_image(pygame.image.load("imgs/wall.png").convert(), False),
@@ -703,7 +707,6 @@ def init():
     gen_map(display)
     frames = 0
 
-    current_weapon_state = punch[0][0]
     current_anim_frame = 0
     anim_counter = 0
 
@@ -716,16 +719,18 @@ def init():
         display.fill((0, 0, 0))
         delta_time = 1 / clock.tick(60)
 
-        if attack is not None:
-            if frames - anim_counter >= punch[current_anim_frame][1]:
+        if attack:
+            if frames - anim_counter >= ATTACKS[held_spell][current_anim_frame][1]:
                 current_anim_frame += 1
-                if current_anim_frame >= len(punch):
-                    attack = None
+                if current_anim_frame >= len(ATTACKS[held_spell]):
+                    attack = False
                     current_anim_frame = 0
-                    current_weapon_state = punch[0][0]
+                    held_spell = "punch"
                 else:
                     anim_counter = frames
-                    current_weapon_state = punch[current_anim_frame][0]
+                    current_weapon_state = ATTACKS[held_spell][current_anim_frame][0]
+        else:
+            current_weapon_state = ATTACKS[held_spell][0][0]
 
         input_handler(delta_time)
 
@@ -743,7 +748,7 @@ def init():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     fire(2)
-                    attack = "punch"
+                    attack = True
                 if event.key == pygame.K_ESCAPE:
                     quit()
                 if event.key == pygame.K_TAB:
