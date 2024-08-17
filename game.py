@@ -670,7 +670,7 @@ class Sprite:
         if self.s_type == "barrel":
             self.texture = barrel_destroyed_img
             self.solid = False
-            sprites.append(Sprite(self.coords, fireball_powerup, (256,256), 1, solid=False, s_type="fireball_pu", invulnerable=True))
+            sprites.append(Sprite(self.coords, fireball_powerup, (256,256), 0.1, s_type="fireball_pu", invulnerable=True))
             return
         if self.invulnerable:
             return
