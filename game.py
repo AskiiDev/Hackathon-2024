@@ -213,6 +213,7 @@ goblin_images = {
     7: load_image(pygame.image.load("imgs/enemies/goblin/A8.png").convert_alpha(), False)
 }
 
+gore_pile = load_image(pygame.image.load("imgs/enemies/gorepile.png").convert_alpha(), False)
 
 def distance_fog(distance, scaled_texture):
     dark_surface = pygame.Surface(scaled_texture.get_size())
@@ -516,6 +517,7 @@ def fire(max_distance):
                 sprite_y+ (0.5 - sprite_width) < fire_y < sprite_y + (0.5 + sprite_width)):
                 print(f"Hit detected on sprite at {sprite.coords} after {dist} units")
                 # handle_hit(sprite)  # Call a function to handle the hit
+                sprite.get_hit()
                 return
 
         # Optionally, check if the bullet hits a wall or other obstacle in the map
@@ -570,39 +572,100 @@ class Sprite:
         self.health = health
         self.solid = solid
         self.s_type = s_type
+        self.mark_for_death = 0
+        self.died = False
 
     def handle_collision(self, sprite):
         pass
+
+    def get_hit(self):
+        if not self.died:
+            self.died = True
+            self.mark_for_death = 20
+        # if self.s_type == "ghost":
+        #     self.texture = ghost_images["falling"]
+        # if self.s_type == "goblin":
+        #     self.texture = goblin_images["falling"]
 
     def hit_player(self):
         pass
 
     def simulate(self):
-        if self.s_type == "ghost":
-            self.texture = ghost_images[anim_frames % 3]
+        if self.mark_for_death == 1:
+            sprites.append(Sprite((self.coords), gore_pile, self.res, self.width, s_type = 'gore pile'))
+            sprites.remove(self)
 
-            player_x, player_y = player_coords['x'], player_coords['y']
-            ghost_x, ghost_y = self.coords
+        elif self.mark_for_death > 1:
+            self.mark_for_death -= 1
 
-                # Calculate the direction vector from the ghost to the player
-            direction_x = player_x - ghost_x
-            direction_y = player_y - ghost_y
+        else:        
+            if self.s_type == "ghost":
+                self.texture = ghost_images[anim_frames % 3]
 
-                # Normalize the direction vector to get a unit vector
-            distance = math.sqrt(direction_x ** 2 + direction_y ** 2)
-            if distance != 0:
-                direction_x /= distance
-                direction_y /= distance
+                player_x, player_y = player_coords['x'], player_coords['y']
+                ghost_x, ghost_y = self.coords
 
-                # Set the speed at which the ghost moves towards the player
-            ghost_speed = 0.02  # Adjust this value for desired speed
+                    # Calculate the direction vector from the ghost to the player
+                direction_x = player_x - ghost_x
+                direction_y = player_y - ghost_y
 
-                # Update the ghost's position to move along the direction vector
-            ghost_x += direction_x * ghost_speed
-            ghost_y += direction_y * ghost_speed
+                    # Normalize the direction vector to get a unit vector
+                distance = math.sqrt(direction_x ** 2 + direction_y ** 2)
+                if distance != 0:
+                    direction_x /= distance
+                    direction_y /= distance
+
+                    # Set the speed at which the ghost moves towards the player
+                ghost_speed = 0.02  # Adjust this value for desired speed
+
+                    # Update the ghost's position to move along the direction vector
+                ghost_x += direction_x * ghost_speed
+                ghost_y += direction_y * ghost_speed
 
 
-            self.coords = (ghost_x, ghost_y)
+                self.coords = (ghost_x, ghost_y)
+
+            if self.s_type == "goblin":
+
+                player_x, player_y = player_coords['x'], player_coords['y']
+                goblin_x, goblin_y = self.coords
+
+                    # Calculate the direction vector from the ghost to the player
+                direction_x = player_x - goblin_x
+                direction_y = player_y - goblin_y
+
+                    # Normalize the direction vector to get a unit vector
+                distance = math.sqrt(direction_x ** 2 + direction_y ** 2)
+                if distance != 0:
+                    direction_x /= distance
+                    direction_y /= distance
+
+                goblin_speed = 0.03  # Adjust this value for desired speed
+
+                if distance < 3:
+
+                        # Update the ghost's position to move along the direction vector
+                    
+                    goblin_x -= direction_x * goblin_speed
+                    if MAP[int(goblin_x + 0.5 - self.width)][int(goblin_y + 0.5 - self.width)] in TEMP_WALL:
+                        goblin_x += direction_x * goblin_speed
+
+                    goblin_y -= direction_y * goblin_speed
+                    if MAP[int(goblin_x + 0.5 - self.width)][int(goblin_y + 0.5 - self.width)] in TEMP_WALL:
+                        goblin_y += direction_y * goblin_speed
+                    self.coords = (goblin_x, goblin_y)
+
+
+                elif distance > 4:
+             
+                    goblin_x += direction_x * goblin_speed
+                    if MAP[int(goblin_x)][int(goblin_y)] in TEMP_WALL:
+                        goblin_x -= direction_x * goblin_speed
+
+                    goblin_y += direction_y * goblin_speed
+                    if MAP[int(goblin_x)][int(goblin_y)] in TEMP_WALL:
+                        goblin_y -= direction_y * goblin_speed
+                    self.coords = (goblin_x, goblin_y)
 
 
 
@@ -658,6 +721,7 @@ def load_level():
     pygame.mouse.set_visible(False)
 
     MAP = gen_map_grid(get_stationary())
+    print(MAP)
 
     MAP_WIDTH = len(MAP)
     MAP_HEIGHT = len(MAP[0])
@@ -673,10 +737,13 @@ def load_level():
 
     sprites = []
 
+
+    barrel = Sprite((start_pos[0] + 1, start_pos[1] + 1), load_image(pygame.image.load("imgs/barrel.png").convert_alpha(), False), (64, 64), 0.5, solid=True)
+    sprites.append(barrel)
     # ghost_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), ghost_images[1], (256,256), 0.5, health=5, solid=True, s_type="ghost")
     # sprites.append(ghost_test)
 
-    goblin_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), goblin_images[0], (256,256), 0.5, health=5, solid=True, s_type="goblin")
+    goblin_test = Sprite((start_pos[0] - 1, start_pos[1] - 1), goblin_images[0], (256,256), 0.5, health=5, solid=True, s_type="goblin")
     sprites.append(goblin_test)
 
     # check_sprite_collision(gobbo, gobbo2)
@@ -707,6 +774,7 @@ def init():
                 102: load_image(pygame.image.load("imgs/wall.png").convert(), True),
                 103: load_image(pygame.image.load("imgs/closed_door.png").convert(), True),
                 104: load_image(pygame.image.load("imgs/opened_door.png").convert(), True)}
+    
 
     total_score = 0
     level = 1
