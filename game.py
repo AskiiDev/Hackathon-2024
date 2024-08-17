@@ -556,6 +556,7 @@ def next_level():
 
     total_score += score
     display.fill(pygame.Color(0,0,0))
+    render_hud(0)
     print("Score:")
     print(score)
     print("Total:")
@@ -564,6 +565,7 @@ def next_level():
     
     pygame.time.wait(1000)
     display.fill(pygame.Color(0,0,0))
+    render_hud(0)
     
     print("Generating map...")
     gen_map(display)
@@ -592,9 +594,6 @@ def load_level():
     score = 0
     background = None
     
-    
-    # sprite_key = {4: Sprite((0,0), ())}
-
     pygame.event.set_grab(True)
     pygame.mouse.set_visible(False)
 
