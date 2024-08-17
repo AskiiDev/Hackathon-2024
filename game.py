@@ -225,7 +225,9 @@ textures = {
 ghost_images = {
     0: load_image(pygame.image.load("imgs/enemies/ghost/A3.png").convert_alpha(), False),
     1: load_image(pygame.image.load("imgs/enemies/ghost/A4.png").convert_alpha(), False),
-    2: load_image(pygame.image.load("imgs/enemies/ghost/A5.png").convert_alpha(), False)
+    2: load_image(pygame.image.load("imgs/enemies/ghost/A5.png").convert_alpha(), False),
+    "die1": load_image(pygame.image.load("imgs/enemies/ghost/GHDying1.png").convert_alpha(), False),
+    "die2": load_image(pygame.image.load("imgs/enemies/ghost/GHDying2.png").convert_alpha(), False)
 }
 
 goblin_images = {
@@ -239,6 +241,19 @@ goblin_images = {
     7: load_image(pygame.image.load("imgs/enemies/goblin/A8.png").convert_alpha(), False),
     "die1": load_image(pygame.image.load("imgs/enemies/goblin/GDying1.png").convert_alpha(), False),
     "die2": load_image(pygame.image.load("imgs/enemies/goblin/GDying2.png").convert_alpha(), False)
+}
+
+ogre_images = {
+    0: load_image(pygame.image.load("imgs/enemies/ogre/F1.png").convert_alpha(), False),
+    1: load_image(pygame.image.load("imgs/enemies/ogre/F2.png").convert_alpha(), False),
+    2: load_image(pygame.image.load("imgs/enemies/ogre/F3.png").convert_alpha(), False),
+    3: load_image(pygame.image.load("imgs/enemies/ogre/F4.png").convert_alpha(), False),
+    4: load_image(pygame.image.load("imgs/enemies/ogre/F5.png").convert_alpha(), False),
+    5: load_image(pygame.image.load("imgs/enemies/ogre/F6.png").convert_alpha(), False),
+    6: load_image(pygame.image.load("imgs/enemies/ogre/F7.png").convert_alpha(), False),
+    7: load_image(pygame.image.load("imgs/enemies/ogre/F8.png").convert_alpha(), False),
+    "die1": load_image(pygame.image.load("imgs/enemies/ogre/ODying1.png").convert_alpha(), False),
+    "die2": load_image(pygame.image.load("imgs/enemies/ogre/ODying2.png").convert_alpha(), False)
 }
 
 gore_pile = load_image(pygame.image.load("imgs/enemies/gorepile.png").convert_alpha(), False)
@@ -574,7 +589,7 @@ def check_player_sprite_collision(player_x, player_y):
             player_x > sprite_x + (0.5 - sprite_width) and
             player_y < sprite_y + (0.5 + sprite_height) and
             player_y > sprite_y + (0.5 - sprite_height)):
-            # sprite.hit_player()  # Call a function to handle what happens on collision
+            sprite.hit_player()  # Call a function to handle what happens on collision
             # print("HI")
             return True
 
@@ -628,18 +643,19 @@ class Sprite:
         if not self.mark_for_death:
             self.died = True
             self.mark_for_death = 20
-        # if self.s_type == "ghost":
-        #     self.texture = ghost_images["falling"]
-        # if self.s_type == "goblin":
-        #     self.texture = goblin_images["falling"]
 
     def handle_hit(self):
         self.get_hit()
 
     def hit_player(self):
-        pass
+        global player_health
+        if self.s_type == "proj":
+            player_health -= 5
+            sprites.remove(self)
+        
 
     def simulate(self):
+        global player_health
         global sprites
         if self.mark_for_death == 1:
             sprites.append(Sprite((self.coords), gore_pile, (256, 256), 0.05,  invulnerable=True, s_type = 'gore pile'))
@@ -648,9 +664,21 @@ class Sprite:
 
         elif self.mark_for_death > 1:
             if self.mark_for_death <= 10:
-                self.texture = goblin_images["die2"]
+                if self.s_type == "goblin":
+                    self.texture = goblin_images["die2"]
+                elif self.s_type == "ghost":
+                    self.texture = ghost_images["die2"]
+                elif self.s_type == "ogre":
+                    self.texture = ogre_images["die2"]
+
             elif self.mark_for_death <= 20:
-                self.texture = goblin_images["die1"]
+                if self.s_type == "goblin":
+                    self.texture = goblin_images["die1"]
+                elif self.s_type == "ghost":
+                    self.texture = ghost_images["die1"]
+                elif self.s_type == "ogre":
+                    self.texture = ogre_images["die1"]
+                
             self.mark_for_death -= 1
 
         else:        
@@ -756,6 +784,67 @@ class Sprite:
                         
                         if self.frame == 12: # amount of 'recovery' frames for the attack
                             self.attacking = False
+
+            if self.s_type == "ogre":
+                if not self.attacking:
+                    self.texture = ogre_images[0]
+                    player_x, player_y = player_coords['x'], player_coords['y']
+                    ogre_x, ogre_y = self.coords
+
+                    # Calculate the direction vector and distance from the goblin to the player
+                    direction_x = player_x - ogre_x
+                    direction_y = player_y - ogre_y
+                    distance = math.hypot(direction_x, direction_y)
+
+                    if distance > 0:
+                        direction_x /= distance
+                        direction_y /= distance
+
+                    ogre_speed = 0.03
+
+                    mx = False
+                    my = False
+
+
+                    new_x = ogre_x + direction_x * ogre_speed
+
+                    if not (MAP[int(new_x + 0.5 - self.width)][int(ogre_y + 0.5 - self.width)] in TEMP_WALL or
+                            MAP[int(new_x + 0.5 + self.width)][int(ogre_y + 0.5 + self.width)] in TEMP_WALL):
+                        ogre_x = new_x
+                        mx = True
+                    
+                    new_y = ogre_y + direction_y * ogre_speed
+                            
+                    if not (MAP[int(ogre_x + 0.5 - self.width)][int(new_y + 0.5 - self.width)] in TEMP_WALL or
+                            MAP[int(ogre_x + 0.5 + self.width)][int(new_y + 0.5 + self.width)] in TEMP_WALL):
+                        ogre_y = new_y
+                        mx = True
+
+                    self.coords = (ogre_x, ogre_y)
+
+                    if distance < 0.5:
+                        self.attacking = True
+                        self.frame = 0
+
+                else:
+                    if anim_frames != self.prev_anim_frame:
+                        self.frame += 1
+                        if self.frame < 8:
+                            self.texture = ogre_images[self.frame]
+
+                        if self.frame == 6:
+                            direction_x = player_coords['x'] - self.coords[0]
+                            direction_y = player_coords['y'] - self.coords[1]
+                            distance = math.hypot(direction_x, direction_y)
+
+                            if distance < 0.5:
+                                player_health -= 10
+
+                        if self.frame >= 8:
+                            self.texture = ogre_images[0]
+                        
+                        if self.frame == 12: # amount of 'recovery' frames for the attack
+                            self.attacking = False
                         
                         
         
@@ -838,8 +927,11 @@ def load_level():
     # ghost_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), ghost_images[1], (256,256), 0.5, health=5, solid=True, s_type="ghost")
     # sprites.append(ghost_test)
 
-    goblin_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), goblin_images[0], (256,256), 0.5, health=5, solid=True, s_type="goblin")
-    sprites.append(goblin_test)
+    # goblin_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), goblin_images[0], (256,256), 0.5, health=5, solid=True, s_type="goblin")
+    # sprites.append(goblin_test)
+
+    ogre_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), ogre_images[0], (256,256), 0.5, health=5, solid=True, s_type="ogre")
+    sprites.append(ogre_test)
 
     # fireball_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), fireball_proj, (256,256), 0.1, dir=(player_rotation['x'], player_rotation['y']), speed=1, solid=True, s_type="proj")
     # fireball_test = Sprite((start_pos[0] - 1, start_pos[1] - 1), fireball_proj, (256,256), 0.1, speed=0.01, dir=(player_rotation['x'],player_rotation['y']), s_type="proj")
