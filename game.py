@@ -157,7 +157,7 @@ def input_handler(delta_time):
     if 'a' in move:
         try_move_right(delta_time, 1)
     if 'space' in move:
-        fire(3)
+        fire(2)
 
 
 # -----------------------------------------------------------------------------------------------
@@ -484,8 +484,8 @@ def fire(max_distance):
             sprite_width, sprite_height = sprite.width, sprite.width
 
             # Check for collision with sprite's bounding box
-            if (sprite_x < fire_x < sprite_x + sprite_width and
-                sprite_y < fire_y < sprite_y + sprite_height):
+            if (sprite_x + (0.5 - sprite_width) < fire_x < sprite_x + (0.5 + sprite_width) and
+                sprite_y+ (0.5 - sprite_width) < fire_y < sprite_y + (0.5 + sprite_width)):
                 print(f"Hit detected on sprite at {sprite.coords} after {dist} units")
                 # handle_hit(sprite)  # Call a function to handle the hit
                 return
@@ -614,7 +614,7 @@ def load_level():
 
     sprites = []
 
-    ghost_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), ghost_images[1], (256,256), 0.3, health=5, solid=True, s_type="ghost")
+    ghost_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), ghost_images[1], (256,256), 0.5, health=5, solid=True, s_type="ghost")
     sprites.append(ghost_test)
 
     # check_sprite_collision(gobbo, gobbo2)
