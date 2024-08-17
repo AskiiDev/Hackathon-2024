@@ -1,6 +1,7 @@
 from mapgen import *
 import pygame
 import math
+import time
 
 TEMP_WALL = [0, 2, 3, 4]
 
@@ -25,7 +26,13 @@ running = True
 pygame.init()
 pygame.font.init()
 
-font = pygame.font.Font("almendra/Almendra-Regular.ttf", 50)
+FONTS = {
+    'floor': pygame.font.Font("almendra/Almendra-Regular.ttf", 40),
+    'floor_n': pygame.font.Font("almendra/Almendra-Regular.ttf", 40),
+    'timer': pygame.font.Font("almendra/Almendra-Regular.ttf", 40),
+    'health': pygame.font.Font("almendra/Almendra-Regular.ttf", 40)
+}
+
 
 clock = pygame.time.Clock()
 display = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -388,10 +395,18 @@ def render_hud(delta):
 
     y_pos = (y_pos // quantization_step) * quantization_step
     display.blit(hud, (0, 0))
-    display.blit(arrow, (0, y_pos))
+    display.blit(arrow, (0, 20 + y_pos))
 
-    #timer = font.render("Hello World!", True, (255, 255, 255))
-    #display.blit(timer, (40, 250))
+    floor_title = FONTS['floor'].render("FLOOR", True, (255, 255, 255))
+    timer_title = FONTS['timer'].render("TIMER", True, (255, 255, 255))
+    floor_counter = FONTS['floor_n'].render("1", True, (200, 200, 200))
+    timer_counter = FONTS['floor_n'].render(f"0:00", True, (200, 200, 200))
+    now = pygame.time.get_ticks()
+
+    display.blit(floor_title, (48.5, 475))
+    display.blit(timer_title, (195.5, 475))
+    display.blit(floor_counter, (98.5, 520))
+    display.blit(timer_counter, (220, 520))
 
 
 def render_weapon(delta):
@@ -482,7 +497,6 @@ def hitscan_fire(range):
 
 def check_player_sprite_collision(player_x, player_y):
     for sprite in sprites:
-
         if not sprite.solid:
             continue  
         sprite_x, sprite_y = sprite.coords
@@ -578,6 +592,7 @@ def init():
     global running
 
     frames = 0
+
 
     load_level()
 
