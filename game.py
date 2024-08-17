@@ -5,6 +5,11 @@ import time
 
 TEMP_WALL = [0, 2, 3, 4]
 
+hands_y = 0
+
+HANDS_LOWER_LIMIT = 600
+elapsed_time = 0
+
 anim_frames = 0
 
 MAP_WIDTH = 0
@@ -79,15 +84,20 @@ faces = {
 
 hud = pygame.transform.scale(pygame.image.load("imgs/HUD.png").convert_alpha(), (WIDTH, HEIGHT))
 
-punch = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist1.png").convert_alpha(), (WIDTH, HEIGHT)), 2),
-         1: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.png").convert_alpha(), (WIDTH, HEIGHT)), 2),
-         2: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist3.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
-         3: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist4.png").convert_alpha(), (WIDTH, HEIGHT)), 13),
-         4: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist3.png").convert_alpha(), (WIDTH, HEIGHT)), 2),
-         5: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.png").convert_alpha(), (WIDTH, HEIGHT)), 2)}
+punch = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+         1: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist3.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+         2: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist4.png").convert_alpha(), (WIDTH, HEIGHT)), 9),
+         3: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist3.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
+         4: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.png").convert_alpha(), (WIDTH, HEIGHT)), 14)}
+
+fireball = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball1.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+            1: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball2.png").convert_alpha(), (WIDTH, HEIGHT)), 8),
+            2: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball3.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+            3: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball4.png").convert_alpha(), (WIDTH, HEIGHT)), 10)}
 
 ATTACKS = {
-    "punch": [punch, 4]
+    "punch": punch,
+    "fireball": fireball
 }
 
 # -----------------------------------------------------------------------------------------------
@@ -400,6 +410,7 @@ def render_hud(delta):
     global player_rot
     global player_health
     global goal_coords
+    global elapsed_time
 
     quantization_step = 1
 
@@ -436,7 +447,7 @@ def render_hud(delta):
 
     # Usage
     angle_to_goal = get_angle_to_goal(player_coords, goal_coords)
-    arrow_texture = get_arrow_texture(-angle_to_goal, -player_rot)
+    arrow_texture = get_arrow_texture(-angle_to_goal, -math.atan2(-player_rotation['x'], player_rotation['y']))
 
     arrow = pygame.transform.scale(arrow_texture, (WIDTH, HEIGHT))
 
@@ -458,8 +469,8 @@ def render_hud(delta):
 
     display.blit(faces[face], (0, face_y_pos))
 
-    now = time.time()
-    minutes, seconds = divmod(int(now - level_start_time), 60)
+    elapsed_time = int(time.time() - level_start_time)
+    minutes, seconds = divmod(elapsed_time, 60)
 
     floor_title = FONTS['floor'].render("FLOOR", True, (255, 255, 255))
     timer_title = FONTS['timer'].render("TIMER", True, (255, 255, 255))
@@ -478,6 +489,7 @@ def render_hud(delta):
 
 def render_weapon(weapon_state, delta):
     global anim_frames
+    global hands_y
     quantization_step = 6
 
     x_pos = int(15 * math.cos(delta / 10))
@@ -487,7 +499,7 @@ def render_weapon(weapon_state, delta):
     x_pos = (x_pos // quantization_step) * quantization_step
     y_pos = (y_pos // quantization_step) * quantization_step
 
-    display.blit(weapon_state, (x_pos, y_pos))
+    display.blit(weapon_state, (x_pos, hands_y + y_pos))
 
 
 def fire(max_distance):
@@ -608,11 +620,11 @@ class Sprite:
 
 def next_level():
     global total_score
-    global score
+    global elapsed_time
     global level
     global MAP
 
-    total_score += score
+    total_score += 1000 - min(max(elapsed_time - 20, 0) * 40, 1000)
     display.fill(pygame.Color(0,0,0))
     render_hud(0)
     print("Score:")
@@ -695,7 +707,13 @@ def init():
     global anim_frames
     global player_health
 
-    attack = None
+    global hands_y
+
+    can_attack = True
+    lower_hand = False
+    raise_hand = False
+    attack = False
+    held_spell = "fireball"
 
     textures = {0: load_image(pygame.image.load("imgs/wall.png").convert(), False),
                 1: load_image(pygame.image.load("imgs/wall.png").convert(), False),
@@ -716,7 +734,6 @@ def init():
     gen_map(display)
     frames = 0
 
-    current_weapon_state = punch[0][0]
     current_anim_frame = 0
     anim_counter = 0
 
@@ -729,16 +746,38 @@ def init():
         display.fill((0, 0, 0))
         delta_time = 1 / clock.tick(60)
 
-        if attack is not None:
-            if frames - anim_counter >= punch[current_anim_frame][1]:
+        if attack:
+            if frames - anim_counter >= ATTACKS[held_spell][current_anim_frame][1]:
                 current_anim_frame += 1
-                if current_anim_frame >= len(punch):
-                    attack = None
-                    current_anim_frame = 0
-                    current_weapon_state = punch[0][0]
+                if current_anim_frame >= len(ATTACKS[held_spell]):
+                    if held_spell != "punch":
+                        attack = False
+                        lower_hand = True
+                        can_attack = False
+                    else:
+                        attack = False
+                        current_anim_frame = 0
                 else:
                     anim_counter = frames
-                    current_weapon_state = punch[current_anim_frame][0]
+                    current_weapon_state = ATTACKS[held_spell][current_anim_frame][0]
+        elif can_attack:
+            current_weapon_state = ATTACKS[held_spell][0][0]
+
+        if lower_hand and hands_y < HANDS_LOWER_LIMIT:
+            hands_y += 30
+            if hands_y >= HANDS_LOWER_LIMIT:
+                lower_hand = False
+                raise_hand = True
+                held_spell = "punch"
+                current_weapon_state = punch[0][0]
+
+        if raise_hand and hands_y > 0:
+            hands_y -= 30
+            if hands_y <= 0:
+                hands_y = 0
+                raise_hand = False
+                can_attack = True
+                current_anim_frame = 0
 
         input_handler(delta_time)
 
@@ -755,8 +794,9 @@ def init():
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
-                    fire(2)
-                    attack = "punch"
+                    if can_attack:
+                        fire(2)
+                        attack = True
                 if event.key == pygame.K_ESCAPE:
                     quit()
                 if event.key == pygame.K_TAB:
