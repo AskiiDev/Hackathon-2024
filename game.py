@@ -110,10 +110,19 @@ fireball = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/
             3: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball4.png").convert_alpha(), (WIDTH, HEIGHT)), 10)}
 
 
-lightning = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning1.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
-             1: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning2.png").convert_alpha(), (WIDTH, HEIGHT)), 8),
-             2: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning3.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
-             3: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning2.png").convert_alpha(), (WIDTH, HEIGHT)), 4)}
+lightning = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning1.png").convert_alpha(), (WIDTH, HEIGHT)), 1),
+             1: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning2.png").convert_alpha(), (WIDTH, HEIGHT)), 1),
+             2: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning3.png").convert_alpha(), (WIDTH, HEIGHT)), 2),
+             3: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning4.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+             4: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning5.png").convert_alpha(), (WIDTH, HEIGHT)), 8),
+             5: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning4.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+             6: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning5.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+             7: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning4.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+             8: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning3.png").convert_alpha(), (WIDTH, HEIGHT)), 2),
+             9: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning4.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+             10: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning3.png").convert_alpha(), (WIDTH, HEIGHT)), 2),
+             11: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning2.png").convert_alpha(), (WIDTH, HEIGHT)), 1),
+             12: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning1.png").convert_alpha(), (WIDTH, HEIGHT)), 1)}
 
 ATTACKS = {
     "punch": punch,
@@ -1067,8 +1076,8 @@ def init():
     raise_hand = False
     attack = False
 
-    new_spell = "lightning"
-    held_spell = "lightning"
+    new_spell = "punch"
+    held_spell = "punch"
 
     total_score = 0
     level = 1
@@ -1110,7 +1119,7 @@ def init():
                         attack = False
                         lower_hand = True
                         can_attack = False
-                        new_spell = "lightning"
+                        new_spell = "punch"
 
                         if held_spell == "fireball":                            
                             sprites.append(Sprite((player_coords['x'] - 0.5 + (0.5 * player_rotation['x']), player_coords['y'] - 0.5 + (0.5 * player_rotation['y'])), 
@@ -1136,7 +1145,7 @@ def init():
                 lower_hand = False
                 raise_hand = True
                 held_spell = new_spell
-                current_weapon_state = punch[0][0]
+                current_weapon_state = ATTACKS[held_spell][0][0]
 
         if raise_hand and hands_y > 0 and not attack:
             can_attack = False
@@ -1153,7 +1162,7 @@ def init():
                 continue
             if math.hypot(player_coords['x'] - i[0], player_coords['y'] - i[1]) < barrel_gen_range:
                 agg.append((i[0], i[1]))
-                sprites.append(Sprite(i, barrel_img, (256,256), 0.3, s_type="barrel"))
+                sprites.append(Sprite(i, barrel_img, (256, 256), 0.3, s_type="barrel"))
                 # barrels.remove(i)
         
 
