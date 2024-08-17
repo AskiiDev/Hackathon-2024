@@ -5,6 +5,7 @@ import time
 
 TEMP_WALL = [0, 2, 3, 4]
 
+
 MAP_WIDTH = 0
 MAP_HEIGHT = 0
 
@@ -34,6 +35,8 @@ FONTS = {
     'timer': pygame.font.Font("almendra/Almendra-Regular.ttf", 40),
     'health': pygame.font.Font("almendra/Almendra-Regular.ttf", 40)
 }
+
+pygame.mixer.music.load("People Are Strange.mp3")
 
 
 clock = pygame.time.Clock()
@@ -67,6 +70,12 @@ arrow_images = {
     'nw': pygame.transform.scale(pygame.image.load("imgs/arrow/arrow_nw.png").convert_alpha(), (WIDTH, HEIGHT)),
 }
 
+faces = {
+    'healthy': pygame.transform.scale(pygame.image.load("imgs/faces/healthy.png").convert_alpha(), (WIDTH, HEIGHT))
+}
+
+hud = pygame.transform.scale(pygame.image.load("imgs/HUD.png").convert_alpha(), (WIDTH, HEIGHT))
+hand = pygame.transform.scale(pygame.image.load("imgs/weapons/fist.png").convert_alpha(), (WIDTH, HEIGHT))
 
 # -----------------------------------------------------------------------------------------------
 
@@ -357,10 +366,7 @@ def render_hud(delta):
     global player_rot
     global goal_coords
 
-
     quantization_step = 1
-
-    y_pos = int(3 * abs(math.sin(delta / 10)))
 
     # Function to calculate angle to goal
     def get_angle_to_goal(player_coords, goal_coords):
@@ -396,14 +402,18 @@ def render_hud(delta):
     # Usage
     angle_to_goal = get_angle_to_goal(player_coords, goal_coords)
     arrow_texture = get_arrow_texture(-angle_to_goal, -player_rot)
-    #print(angle_to_goal)
+
     arrow = pygame.transform.scale(arrow_texture, (WIDTH, HEIGHT))
 
-    hud = pygame.transform.scale(pygame.image.load("imgs/HUD.png").convert_alpha(), (WIDTH, HEIGHT))
-
+    y_pos = int(3 * abs(math.sin(delta / 10)))
     y_pos = (y_pos // quantization_step) * quantization_step
+
+    face_y_pos = int(2 * abs(math.sin(delta / 20)))
+    face_y_pos = (face_y_pos // quantization_step) * quantization_step
+
     display.blit(hud, (0, 0))
     display.blit(arrow, (0, 20 + y_pos))
+    display.blit(faces["healthy"], (0, face_y_pos))
 
     now = time.time()
     minutes, seconds = divmod(int(now - level_start_time), 60)
@@ -425,7 +435,6 @@ def render_hud(delta):
 
 def render_weapon(delta):
     quantization_step = 6
-    hand = pygame.transform.scale(pygame.image.load("imgs/weapons/fist.png").convert_alpha(), (WIDTH, HEIGHT))
 
     x_pos = int(15 * math.cos(delta / 10))
     y_pos = int(10 * abs(math.sin(delta / 10)))
@@ -648,8 +657,8 @@ def init():
     gen_map(display)
     frames = 0
 
-
     load_level()
+    # pygame.mixer.music.play()
 
     while running:
         frames += 1
