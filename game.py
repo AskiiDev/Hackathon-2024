@@ -6,6 +6,8 @@ import time
 TEMP_WALL = [0, 2, 3, 4]
 
 hands_y = 0
+lower_hand = False
+new_spell = "punch"
 
 player_health = 100
 sprites = []
@@ -644,7 +646,8 @@ class Sprite:
     global sprites
     global anim_frames
     global player_health
-    global held_spell
+    global lower_hand 
+    global new_spell
 
     def __init__(self, coords, texture, res, width, health=1, invulnerable=False, solid=True, s_type='default', speed=0, dir=(0,0)):
         self.coords = coords
@@ -685,14 +688,15 @@ class Sprite:
 
     def hit_player(self):
         global player_health
-        global held_spell
+        global lower_hand
+        global new_spell
         if self.s_type == "proj":
             damage_player(20)
             sprites.remove(self)
 
         if self.s_type == "fireball_pu":
-            held_spell = "fireball"
-            print("he")
+            new_spell = "fireball"
+            lower_hand = True
             sprites.remove(self)
         
 
@@ -1007,6 +1011,9 @@ def init():
     global player_health
     global barrels
     global hands_y
+    global held_spell
+    global lower_hand
+    global new_spell
 
     can_attack = True
     lower_hand = False
@@ -1035,6 +1042,8 @@ def init():
         display.fill((0, 0, 0))
         delta_time = 1 / clock.tick(60)
 
+        print(held_spell)
+
         if attack:
             if frames - anim_counter >= ATTACKS[held_spell][current_anim_frame][1]:
                 current_anim_frame += 1
@@ -1043,11 +1052,12 @@ def init():
                         attack = False
                         lower_hand = True
                         can_attack = False
+                        new_spell = "punch"
 
                         if held_spell == "fireball":                            
                             sprites.append(Sprite((player_coords['x'] - 0.5 + (0.5 * player_rotation['x']), player_coords['y'] - 0.5 + (0.5 * player_rotation['y'])), 
                                                   fireball_proj, (256,256), 0.1, solid=False, invulnerable=True, 
-                                                  speed=0.1, dir=(player_rotation['x'],player_rotation['y']), s_type="proj"))
+                                                  speed=0.2, dir=(player_rotation['x'],player_rotation['y']), s_type="proj"))
                             # pass
 
                     else:
@@ -1062,14 +1072,16 @@ def init():
             current_weapon_state = ATTACKS[held_spell][0][0]
 
         if lower_hand and hands_y < HANDS_LOWER_LIMIT:
+            can_attack = False
             hands_y += 30
             if hands_y >= HANDS_LOWER_LIMIT:
                 lower_hand = False
                 raise_hand = True
-                held_spell = "punch"
+                held_spell = new_spell
                 current_weapon_state = punch[0][0]
 
         if raise_hand and hands_y > 0:
+            can_attack = False
             hands_y -= 30
             if hands_y <= 0:
                 hands_y = 0
