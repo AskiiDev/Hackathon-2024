@@ -2,7 +2,7 @@ from mapgen import *
 import pygame
 import math
 
-TEMP_WALL = 2
+TEMP_WALL = [0, 2, 3, 4]
 
 MAP_WIDTH = 0
 MAP_HEIGHT = 0
@@ -70,12 +70,12 @@ def try_move(vx, vy):
     dy = vy * WALK_SPEED
 
     player_coords['x'] += dx
-    if MAP[int(player_coords['x'])][int(player_coords['y'])] == TEMP_WALL or \
+    if MAP[int(player_coords['x'])][int(player_coords['y'])] in TEMP_WALL or \
        check_player_sprite_collision(player_coords['x'], player_coords['y']):
         player_coords['x'] -= dx
 
     player_coords['y'] += dy
-    if MAP[int(player_coords['x'])][int(player_coords['y'])] == TEMP_WALL or \
+    if MAP[int(player_coords['x'])][int(player_coords['y'])] in TEMP_WALL or \
        check_player_sprite_collision(player_coords['x'], player_coords['y']):
         player_coords['y'] -= dy
 
@@ -159,7 +159,7 @@ def distance_fog(distance, scaled_texture):
 
 def ray_cast_better():
     global background
-    global texture
+    global textures
     global sprites
 
     w = WIDTH
@@ -217,7 +217,7 @@ def ray_cast_better():
                 map_y += step_y
                 side = 1
 
-            if (MAP[int(map_x)][int(map_y)] == TEMP_WALL) or math.sqrt(
+            if (MAP[int(map_x)][int(map_y)] in TEMP_WALL) or math.sqrt(
                     (map_x - ray_pos_x) ** 2 + (map_y - ray_pos_y) ** 2) > 12:
                 hit = 1
 
@@ -234,6 +234,8 @@ def ray_cast_better():
         draw_start = - line_height / 2 + h / 2
         draw_end = line_height / 2 + h / 2
 
+        tex_num = MAP[map_x][map_y]
+
         if side == 1:
             wall_x = ray_pos_x + ((map_y - ray_pos_y + (1 - step_y) / 2) / ray_dir_y) * ray_dir_x
         else:
@@ -247,6 +249,9 @@ def ray_cast_better():
         if side == 1 and ray_dir_y < 0:
             tex_x = TEXTURE_WIDTH - tex_x - 1
 
+        if(side == 1):
+            tex_num += 100
+
         if line_height > 10000:
             line_height = 10000
             draw_start = -5000 + h / 2
@@ -254,8 +259,8 @@ def ray_cast_better():
 
         A = max(1 - ((math.sqrt((map_x - ray_pos_x) ** 2 + (map_y - ray_pos_y) ** 2)) / 11), 0)
         # A = 1
-
-        scaled_texture = distance_fog(A, pygame.transform.scale(texture[tex_x], (1, line_height)))
+        
+        scaled_texture = distance_fog(A, pygame.transform.scale(textures[tex_num][tex_x], (1, line_height)))
 
         display.blit(scaled_texture, (x, draw_start))
 
@@ -344,7 +349,7 @@ def render_hud(delta):
         angle_diff = (angle_to_goal - player_rot) % (2 * math.pi)
 
         # Determine the direction based on the angle difference
-        if 0 <= angle_diff < math.pi / 8or angle_diff > 15 * math.pi / 8:
+        if 0 <= angle_diff < math.pi / 8 or angle_diff > 15 * math.pi / 8:
             return arrow_images['e']
         elif math.pi / 8 <= angle_diff < 3 * math.pi / 8:
             return arrow_images['ne']
@@ -441,7 +446,7 @@ def hitscan_fire(range):
         
 
         # Check if the ray has hit an enemy or wall
-        if MAP[map_x][map_y] == TEMP_WALL:
+        if MAP[map_x][map_y] in TEMP_WALL:
             hit = True
             print("Hit a wall!")
         
@@ -514,16 +519,23 @@ def init():
     global MAP_WIDTH
     global MAP_HEIGHT
     global background
-    global texture
+    global textures
     global goal_coords
     global sprites
 
     frames = 0
 
     background = None
-    textures = {2: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
+    textures = {0: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
+                1: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
+                2: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
                 3: load_image(pygame.image.load("imgs/closed_door.png").convert(), False),
-                4: load_image(pygame.image.load("imgs/opened_door.png").convert(), False)}
+                4: load_image(pygame.image.load("imgs/opened_door.png").convert(), False), 
+                100: load_image(pygame.image.load("imgs/wall.png").convert(), True), 
+                101: load_image(pygame.image.load("imgs/wall.png").convert(), True), 
+                102: load_image(pygame.image.load("imgs/wall.png").convert(), True), 
+                103: load_image(pygame.image.load("imgs/closed_door.png").convert(), True),
+                104: load_image(pygame.image.load("imgs/opened_door.png").convert(), True)}
     
     # sprite_key = {4: Sprite((0,0), ())}
 
@@ -549,6 +561,8 @@ def init():
     gobbo2 = Sprite((start_pos[0] - 1.6, start_pos[1] + 0),
                    load_image(pygame.image.load("imgs/barrel.png").convert(), False, colorKey=(0, 0, 0)), (64, 64), 0.5)
     sprites.append(gobbo)
+    print(gen_map_grid(get_stationary()))
+
     # sprites.append(gobbo2)
 
     # check_sprite_collision(gobbo, gobbo2)

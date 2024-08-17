@@ -158,27 +158,38 @@ def gen_map_grid(rooms):
         # Inside corner check: it is an inside corner if it has at least two walls adjacent in perpendicular directions
         return adjacent_walls.count(2) >= 2
 
-    wall_positions = np.argwhere(grid == 2)
-    valid_wall_positions = [pos for pos in wall_positions if not is_inside_corner(pos)]
-
-    start_room_mid = get_start_pos()
     
-    distances = np.sqrt((valid_wall_positions[:, 0] - start_room_mid[0]) ** 2 + (valid_wall_positions[:, 1] - start_room_mid[1]) ** 2)
+    wall_positions = np.argwhere(grid == 2)
+    
+    # Ensure valid_wall_positions is not empty
+    valid_wall_positions = [tuple(pos) for pos in wall_positions if not is_inside_corner(tuple(pos))]
+    if not valid_wall_positions:
+        print("No valid wall positions found.")
+        # return grid
+
+    # Start room midpoint logic
+    start_room_mid = get_start_pos()
+    distances = np.sqrt([(pos[0] - start_room_mid[0]) ** 2 + (pos[1] - start_room_mid[1]) ** 2 for pos in wall_positions])
+    
+    if len(distances) == 0:
+        print("No distances calculated for start room.")
+        # return grid
 
     nearest_wall_idx = np.argmin(distances)
-
-    nearest_wall_position = valid_wall_positions[nearest_wall_idx]
+    nearest_wall_position = wall_positions[nearest_wall_idx]
     grid[nearest_wall_position[0], nearest_wall_position[1]] = 3
 
+    # End room midpoint logic
     end_room_mid = get_end_pos()
+    distances = np.sqrt([(pos[0] - end_room_mid[0]) ** 2 + (pos[1] - end_room_mid[1]) ** 2 for pos in valid_wall_positions])
 
-    distances = np.sqrt((valid_wall_positions[:, 0] - end_room_mid[0]) ** 2 + (valid_wall_positions[:, 1] - end_room_mid[1]) ** 2)
+    if len(distances) == 0:
+        print("No distances calculated for end room.")
+        return grid
 
     nearest_wall_idx = np.argmin(distances)
-
     nearest_wall_position = valid_wall_positions[nearest_wall_idx]
     grid[nearest_wall_position[0], nearest_wall_position[1]] = 4
-
 
     return grid
 
