@@ -68,6 +68,7 @@ arrow_images = {
 }
 
 
+
 # -----------------------------------------------------------------------------------------------
 
 def get_forward_vector(theta):
@@ -149,7 +150,7 @@ def input_handler(delta_time):
     if 'a' in move:
         try_move_right(delta_time, 1)
     if 'space' in move:
-        hitscan_fire(3)
+        fire(3)
 
 
 # -----------------------------------------------------------------------------------------------
@@ -157,18 +158,35 @@ def input_handler(delta_time):
 
 def load_image(image, darken, colorKey=None):
     ret = []
-    if colorKey is not None:
-        image.set_colorkey(colorKey)
-    if darken:
-        image.set_alpha(127)
+    # Convert the image to include alpha transparency
+    image = image.convert_alpha()
+    
     for i in range(image.get_width()):
-        s = pygame.Surface((1, image.get_height())).convert()
-        #s.fill((0,0,0))
-        s.blit(image, (- i, 0))
+        s = pygame.Surface((1, image.get_height()), pygame.SRCALPHA).convert_alpha()
+        s.blit(image, (-i, 0))
+        
+        # If a color key is provided, set it as transparent
         if colorKey is not None:
             s.set_colorkey(colorKey)
+        
+        # Apply darkening effect if specified
+        if darken:
+            # Darken only the non-transparent parts
+            for y in range(s.get_height()):
+                for x in range(s.get_width()):
+                    pixel = s.get_at((x, y))
+                    if pixel.a != 0:  # If pixel is not fully transparent
+                        s.set_at((x, y), pixel)
+
         ret.append(s)
+    
     return ret
+
+ghost_images = {
+    0: load_image(pygame.image.load("imgs/enemies/ghost/A3.png").convert_alpha(), False),
+    1: load_image(pygame.image.load("imgs/enemies/ghost/A4.png").convert_alpha(), False),
+    2: load_image(pygame.image.load("imgs/enemies/ghost/A5.png").convert_alpha(), False)
+}
 
 
 def distance_fog(distance, scaled_texture):
@@ -433,78 +451,43 @@ def render_weapon(delta):
 
     display.blit(hand, (x_pos, 20 + y_pos))
 
-def hitscan_fire(range):
-    # Initialize the ray starting at the player's position
-    ray_pos_x = player_coords['x']
-    ray_pos_y = player_coords['y']
-    
-    ray_dir_x = player_rotation['x']
-    ray_dir_y = player_rotation['y']
-    
-    map_x = int(ray_pos_x)
-    map_y = int(ray_pos_y)
 
-    if ray_dir_x != 0:
-        delta_dist_x = math.sqrt(1 + (ray_dir_y ** 2) / (ray_dir_x ** 2))
-    else:
-        delta_dist_x = float('inf')  # Infinite distance if ray_dir_x is 0
+def fire(max_distance):
+    # Get player's position and direction
+    player_x, player_y = player_coords['x'], player_coords['y']
 
-    if ray_dir_y != 0:
-        delta_dist_y = math.sqrt(1 + (ray_dir_x ** 2) / (ray_dir_y ** 2))
-    else:
-        delta_dist_y = float('inf')  # Infinite distance if ray_dir_y is 0
-    
-    # Direction to go in x and y (+1 or -1)
-    if ray_dir_x < 0:
-        step_x = -1
-        side_dist_x = (ray_pos_x - map_x) * delta_dist_x
-    else:
-        step_x = 1
-        side_dist_x = (map_x + 1.0 - ray_pos_x) * delta_dist_x
-    
-    if ray_dir_y < 0:
-        step_y = -1
-        side_dist_y = (ray_pos_y - map_y) * delta_dist_y
-    else:
-        step_y = 1
-        side_dist_y = (map_y + 1.0 - ray_pos_y) * delta_dist_y
-    
-    hit = False
-    side = 0
-    
-    # Perform DDA (Digital Differential Analyzer) to step through the grid
-    while not hit:
-        if side_dist_x < side_dist_y:
-            side_dist_x += delta_dist_x
-            map_x += step_x
-            side = 0
-        else:
-            side_dist_y += delta_dist_y
-            map_y += step_y
-            side = 1
-        
+    # Calculate the direction vector of the fire based on player_angle
+    fire_dx = player_rotation['x']
+    fire_dy = player_rotation['y']
 
-        # Check if the ray has hit an enemy or wall
-        if MAP[map_x][map_y] in TEMP_WALL:
-            hit = True
-            print("Hit a wall!")
-        
+    # Maximum distance the bullet can travel
+    # max_distance = 20  # Adjust as needed
+
+    for dist in range(max_distance):
+        # Calculate the current point along the fire's path
+        fire_x = player_x + fire_dx * dist
+        fire_y = player_y + fire_dy * dist
+
+        # Check if this point hits any sprite
         for sprite in sprites:
-            sprite_x = int(sprite.coords[0]) 
-            sprite_y = int(sprite.coords[1])
-            
-            if map_x == sprite_x and map_y == sprite_y:
-                hit = True
-                print(f"Hit {sprite}!")
-                return(sprite)
-        
-        # print(side_dist_x)
-        if (side_dist_x ** 2 + side_dist_y ** 2 > range ** 2):
-            print("Missed!")
+            sprite_x, sprite_y = sprite.coords
+            sprite_width, sprite_height = sprite.width, sprite.width
+
+            # Check for collision with sprite's bounding box
+            if (sprite_x < fire_x < sprite_x + sprite_width and
+                sprite_y < fire_y < sprite_y + sprite_height):
+                print(f"Hit detected on sprite at {sprite.coords} after {dist} units")
+                # handle_hit(sprite)  # Call a function to handle the hit
+                return
+
+        # Optionally, check if the bullet hits a wall or other obstacle in the map
+        if MAP[int(fire_x)][int(fire_y)] in TEMP_WALL:
+            print(f"Bullet hit a wall at {int(fire_x)}, {int(fire_y)} after {dist} units")
             return
-    
-    if not hit:
-        print("Missed!")
+
+    print("No hit detected.")
+
+
 
 def check_player_sprite_collision(player_x, player_y):
     for sprite in sprites:
@@ -537,6 +520,8 @@ def check_sprite_collision(sprite1, sprite2):
     return False
 
 class Sprite:
+    global anim_frames 
+
     def __init__(self, coords, texture, res, width, health=1, solid=True, s_type='default'):
         self.coords = coords
         self.texture = texture
@@ -544,9 +529,15 @@ class Sprite:
         self.width = width
         self.health = health
         self.solid = solid
+        self.s_type = s_type
     
     def handle_collision(self, sprite):
         pass
+
+    def simulate(self):
+        if self.s_type == "ghost":
+            self.texture = ghost_images[ (anim_frames) % 3 ]
+
 
 def next_level():
     global total_score
@@ -613,7 +604,8 @@ def load_level():
 
     sprites = []
 
-    # sprites.append(gobbo2)
+    ghost_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), ghost_images[1], (256,256), 0.3, health=5, solid=True, s_type="ghost")
+    sprites.append(ghost_test)
 
     # check_sprite_collision(gobbo, gobbo2)
 
@@ -625,8 +617,10 @@ def init():
     global total_score
     global textures
     global level
+    global sprites
     global MAP
-
+    global frames
+    global anim_frames
 
     textures = {0: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
                 1: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
@@ -644,16 +638,22 @@ def init():
 
     gen_map(display)
     frames = 0
+    anim_frames = 0
 
 
     load_level()
 
     while running:
         frames += 1
+        anim_frames = int(frames / 6)
         display.fill((0, 0, 0))
         delta_time = 1 / clock.tick(60)
 
         input_handler(delta_time)
+
+        for i in sprites:
+            i.simulate()
+
         ray_cast_better()
         render_weapon(frames)
         render_hud(frames)
