@@ -143,6 +143,43 @@ def gen_map_grid(rooms):
     # Update the grid using the mask
     grid[mask] = 2
 
+    def is_inside_corner(position):
+        x, y = position
+        # Check for boundaries to avoid index errors
+        if x <= 0 or y <= 0 or x >= WIDTH - 1 or y >= HEIGHT - 1:
+            return False
+        
+        # Check adjacent cells
+        adjacent_walls = [
+            grid[x-1, y], grid[x+1, y],  # Left, Right
+            grid[x, y-1], grid[x, y+1]   # Up, Down
+        ]
+        
+        # Inside corner check: it is an inside corner if it has at least two walls adjacent in perpendicular directions
+        return adjacent_walls.count(2) >= 2
+
+    wall_positions = np.argwhere(grid == 2)
+    valid_wall_positions = [pos for pos in wall_positions if not is_inside_corner(pos)]
+
+    start_room_mid = get_start_pos()
+    
+    distances = np.sqrt((valid_wall_positions[:, 0] - start_room_mid[0]) ** 2 + (valid_wall_positions[:, 1] - start_room_mid[1]) ** 2)
+
+    nearest_wall_idx = np.argmin(distances)
+
+    nearest_wall_position = valid_wall_positions[nearest_wall_idx]
+    grid[nearest_wall_position[0], nearest_wall_position[1]] = 3
+
+    end_room_mid = get_end_pos()
+
+    distances = np.sqrt((valid_wall_positions[:, 0] - end_room_mid[0]) ** 2 + (valid_wall_positions[:, 1] - end_room_mid[1]) ** 2)
+
+    nearest_wall_idx = np.argmin(distances)
+
+    nearest_wall_position = valid_wall_positions[nearest_wall_idx]
+    grid[nearest_wall_position[0], nearest_wall_position[1]] = 4
+
+
     return grid
 
 def gen_map():
@@ -191,6 +228,7 @@ def render_map(rooms):
 
     # Use surfarray to directly set the surface's pixels
     pygame.surfarray.blit_array(surface, pixels)
+    
 
     return surface
 
@@ -211,4 +249,9 @@ def get_end_pos():
     global stationary
     return get_midpoint(stationary[-1])
 
+def get_real_end_pos():
+    global stationary
+    return get_midpoint(stationary[-1])
+
 gen_map()
+# print(gen_map_grid(stationary))
