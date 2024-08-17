@@ -37,7 +37,8 @@ TURN_SPEED = 0.003
 MOVE_MAP = {pygame.K_w: 'w',
             pygame.K_s: 's',
             pygame.K_a: 'a',
-            pygame.K_d: 'd'}
+            pygame.K_d: 'd',
+            pygame.K_SPACE: 'space'}
 
 
 # -----------------------------------------------------------------------------------------------
@@ -55,11 +56,13 @@ def try_move(vx, vy):
     dy = vy * WALK_SPEED
 
     player_coords['x'] += dx
-    if MAP[int(player_coords['x'])][int(player_coords['y'])] == TEMP_WALL:
+    if MAP[int(player_coords['x'])][int(player_coords['y'])] == TEMP_WALL or \
+       check_player_sprite_collision(player_coords['x'], player_coords['y']):
         player_coords['x'] -= dx
 
     player_coords['y'] += dy
-    if MAP[int(player_coords['x'])][int(player_coords['y'])] == TEMP_WALL:
+    if MAP[int(player_coords['x'])][int(player_coords['y'])] == TEMP_WALL or \
+       check_player_sprite_collision(player_coords['x'], player_coords['y']):
         player_coords['y'] -= dy
 
 
@@ -108,6 +111,8 @@ def input_handler(delta_time):
         try_move_right(delta_time, -1)
     if 'a' in move:
         try_move_right(delta_time, 1)
+    if 'space' in move:
+        hitscan_fire(3)
 
 
 # -----------------------------------------------------------------------------------------------
@@ -265,8 +270,8 @@ def ray_cast_better():
 
     for sprite in sprites:
         #print(sprite)
-        sprite_x = sprite.coords[0] - player_coords['x']
-        sprite_y = sprite.coords[1] - player_coords['y']
+        sprite_x = sprite.coords[0] + 0.5 - player_coords['x']
+        sprite_y = sprite.coords[1] + 0.5 - player_coords['y']
 
 
         inv_det = 1.0 / (camera_plane['x'] * player_rotation['y'] - player_rotation['x'] * camera_plane['y'])
@@ -287,7 +292,7 @@ def ray_cast_better():
 
         #print(f"{draw_start_x}, {draw_end_x}")
 
-        if sprite_height < 1000:
+        if sprite_height < 2000:
             for stripe in range(draw_start_x, draw_end_x):
                 tex_x = int(
                     int(256 * (stripe - (- sprite_width / 2 + sprite_surface_x)) * sprite.res[0] / sprite_width) / 256)
@@ -323,12 +328,119 @@ def render_weapon(delta):
 
     display.blit(hand, (x_pos, 20 + y_pos))
 
+def hitscan_fire(range):
+    # Initialize the ray starting at the player's position
+    ray_pos_x = player_coords['x']
+    ray_pos_y = player_coords['y']
+    
+    ray_dir_x = player_rotation['x']
+    ray_dir_y = player_rotation['y']
+    
+    map_x = int(ray_pos_x)
+    map_y = int(ray_pos_y)
+
+    if ray_dir_x != 0:
+        delta_dist_x = math.sqrt(1 + (ray_dir_y ** 2) / (ray_dir_x ** 2))
+    else:
+        delta_dist_x = float('inf')  # Infinite distance if ray_dir_x is 0
+
+    if ray_dir_y != 0:
+        delta_dist_y = math.sqrt(1 + (ray_dir_x ** 2) / (ray_dir_y ** 2))
+    else:
+        delta_dist_y = float('inf')  # Infinite distance if ray_dir_y is 0
+    
+    # Direction to go in x and y (+1 or -1)
+    if ray_dir_x < 0:
+        step_x = -1
+        side_dist_x = (ray_pos_x - map_x) * delta_dist_x
+    else:
+        step_x = 1
+        side_dist_x = (map_x + 1.0 - ray_pos_x) * delta_dist_x
+    
+    if ray_dir_y < 0:
+        step_y = -1
+        side_dist_y = (ray_pos_y - map_y) * delta_dist_y
+    else:
+        step_y = 1
+        side_dist_y = (map_y + 1.0 - ray_pos_y) * delta_dist_y
+    
+    hit = False
+    side = 0
+    
+    # Perform DDA (Digital Differential Analyzer) to step through the grid
+    while not hit:
+        if side_dist_x < side_dist_y:
+            side_dist_x += delta_dist_x
+            map_x += step_x
+            side = 0
+        else:
+            side_dist_y += delta_dist_y
+            map_y += step_y
+            side = 1
+        
+
+        # Check if the ray has hit an enemy or wall
+        if MAP[map_x][map_y] == TEMP_WALL:
+            hit = True
+            print("Hit a wall!")
+        
+        for sprite in sprites:
+            sprite_x = int(sprite.coords[0]) 
+            sprite_y = int(sprite.coords[1])
+            
+            if map_x == sprite_x and map_y == sprite_y:
+                hit = True
+                print(f"Hit {sprite}!")
+                return(sprite)
+        
+        # print(side_dist_x)
+        if (side_dist_x ** 2 + side_dist_y ** 2 > range ** 2):
+            print("Missed!")
+            return
+    
+    if not hit:
+        print("Missed!")
+
+def check_player_sprite_collision(player_x, player_y):
+    for sprite in sprites:
+
+        if not sprite.solid:
+            continue  
+        sprite_x, sprite_y = sprite.coords
+        sprite_width, sprite_height = sprite.width, sprite.width
+
+        # Check for overlap between player and sprite bounding boxes
+        if (player_x < sprite_x + (0.5 + sprite_width) and
+            player_x > sprite_x + (0.5 - sprite_width) and
+            player_y < sprite_y + (0.5 + sprite_height) and
+            player_y > sprite_y + (0.5 - sprite_height)):
+            # handle_collision(sprite)  # Call a function to handle what happens on collision
+            return True
+
+    return False
+
+def check_sprite_collision(sprite1, sprite2):
+    # Check for overlap between player and sprite bounding boxes
+    if (sprite1.coords[0] < sprite2.coords[0] + sprite2.width and
+        sprite1.coords[0] + sprite1.width > sprite2.coords[0] and
+        sprite1.coords[1] < sprite2.coords[1] + sprite2.width and
+        sprite1.coords[1] + sprite1.width > sprite2.coords[1]):
+        print(f"Collision detected!")
+        # sprite1.handle_collision(sprite2)
+        # sprite2.handle_collision(sprite1)
+                # handle_collision(sprite)  # Call a function to handle what happens on collision
+        return True
+
+    return False
+
 class Sprite:
-    def __init__(self, coords, texture, res):
+    def __init__(self, coords, texture, res, width, health=1, solid=True):
         self.coords = coords
         self.texture = texture
         self.res = res
-
+        self.width = width
+        self.health = health
+        self.solid = solid
 
 def init():
     global running
@@ -360,9 +472,14 @@ def init():
     camera_plane = {'x': 0, 'y': 0.66}
 
     sprites = []
-    gobbo = Sprite((start_pos[0] + 1, start_pos[1] + 2),
-                   load_image(pygame.image.load("imgs/barrel.png").convert(), False, colorKey=(0, 0, 0)), (64, 64))
+    gobbo = Sprite((start_pos[0] - 1, start_pos[1] + 0),
+                   load_image(pygame.image.load("imgs/barrel.png").convert(), False, colorKey=(0, 0, 0)), (64, 64), 0.4)
+    gobbo2 = Sprite((start_pos[0] - 1.6, start_pos[1] + 0),
+                   load_image(pygame.image.load("imgs/barrel.png").convert(), False, colorKey=(0, 0, 0)), (64, 64), 0.5)
     sprites.append(gobbo)
+    # sprites.append(gobbo2)
+
+    # check_sprite_collision(gobbo, gobbo2)
 
     last_pos = start_pos
 
