@@ -4,10 +4,10 @@ import numpy as np
 
 import pygame
 
-WIDTH = 100
-HEIGHT = 75
+WIDTH = 200
+HEIGHT = 150
 
-ROOMS = 250
+ROOMS = 200
 
 ROOM_MIN = 3
 ROOM_MAX = 7
