@@ -389,7 +389,6 @@ def render_weapon(delta):
 
     display.blit(hand, (x_pos, 20 + y_pos))
 
-<<<<<<< Updated upstream
 def hitscan_fire(range):
     # Initialize the ray starting at the player's position
     ray_pos_x = player_coords['x']
@@ -488,23 +487,23 @@ def check_sprite_collision(sprite1, sprite2):
         sprite1.coords[1] < sprite2.coords[1] + sprite2.width and
         sprite1.coords[1] + sprite1.width > sprite2.coords[1]):
         print(f"Collision detected!")
-        # sprite1.handle_collision(sprite2)
-        # sprite2.handle_collision(sprite1)
-                # handle_collision(sprite)  # Call a function to handle what happens on collision
+        sprite1.handle_collision(sprite2)
+        sprite2.handle_collision(sprite1)
         return True
 
     return False
-=======
->>>>>>> Stashed changes
 
 class Sprite:
-    def __init__(self, coords, texture, res, width, health=1, solid=True):
+    def __init__(self, coords, texture, res, width, health=1, solid=True, s_type='default'):
         self.coords = coords
         self.texture = texture
         self.res = res
         self.width = width
         self.health = health
         self.solid = solid
+    
+    def handle_collision(self, sprite):
+        pass
 
 def init():
     global running
@@ -522,7 +521,11 @@ def init():
     frames = 0
 
     background = None
-    texture = load_image(pygame.image.load("imgs/wall.png").convert(), False)
+    textures = {2: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
+                3: load_image(pygame.image.load("imgs/gate_closed.png").convert(), False), 
+                4: load_image(pygame.image.load("imgs/gate_open.png").convert(), False)}
+    
+    # sprite_key = {4: Sprite((0,0), ())}
 
     pygame.event.set_grab(True)
     pygame.mouse.set_visible(False)
@@ -533,11 +536,14 @@ def init():
     MAP_HEIGHT = len(MAP[0])
     start_pos = get_start_pos()
     player_coords = {'x': start_pos[0] + 0.5, 'y': start_pos[1] + 0.5}
-    goal_coords = get_end_pos()
+    goal_coords = get_real_end_pos()
     player_rotation = {'x': -1, 'y': 0}
     camera_plane = {'x': 0, 'y': 0.66}
 
     sprites = []
+    end_trigger = Sprite(goal_coords, load_image(pygame.image.load("imgs/barrel.png").convert(), False, colorKey=(0, 0, 0)), (64, 64), 0.6, s_type='goal')
+    sprites.append(end_trigger)
+
     gobbo = Sprite((start_pos[0] - 1, start_pos[1] + 0),
                    load_image(pygame.image.load("imgs/barrel.png").convert(), False, colorKey=(0, 0, 0)), (64, 64), 0.4)
     gobbo2 = Sprite((start_pos[0] - 1.6, start_pos[1] + 0),
