@@ -680,7 +680,7 @@ class Sprite:
     def hit_player(self):
         global player_health
         if self.s_type == "proj":
-            player_health -= 5
+            player_health -= 10
             sprites.remove(self)
         
 
@@ -884,8 +884,8 @@ class Sprite:
 
 
 
-
-
+def damage_player(amount):
+    p
 
 
 def next_level():
@@ -1080,7 +1080,7 @@ def init():
             i.simulate()
 
         if check_player_sprite_collision(player_coords['x'], player_coords['y']):
-            player_health = max(0, player_health - 1)
+            damage_player(1)
 
         ray_cast_better()
         render_weapon(current_weapon_state, frames)
