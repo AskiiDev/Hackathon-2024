@@ -568,17 +568,25 @@ class Sprite:
             player_x, player_y = player_coords['x'], player_coords['y']
             ghost_x, ghost_y = self.coords
 
+                # Calculate the direction vector from the ghost to the player
             direction_x = player_x - ghost_x
             direction_y = player_y - ghost_y
 
+                # Normalize the direction vector to get a unit vector
             distance = math.sqrt(direction_x ** 2 + direction_y ** 2)
             if distance != 0:
                 direction_x /= distance
                 direction_y /= distance
 
-            ghost_speed = 0.02
+                # Set the speed at which the ghost moves towards the player
+            ghost_speed = 0.02  # Adjust this value for desired speed
 
-            self.coords = (ghost_x + direction_x * ghost_speed, ghost_y + direction_y * ghost_speed)
+                # Update the ghost's position to move along the direction vector
+            ghost_x += direction_x * ghost_speed
+            ghost_y += direction_y * ghost_speed
+    
+    
+            self.coords = (ghost_x, ghost_y)
 
 
 
