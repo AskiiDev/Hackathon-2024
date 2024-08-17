@@ -8,6 +8,7 @@ TEMP_WALL = [0, 2, 3, 4]
 hands_y = 0
 
 HANDS_LOWER_LIMIT = 600
+elapsed_time = 0
 
 anim_frames = 0
 
@@ -90,7 +91,9 @@ punch = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.
          4: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.png").convert_alpha(), (WIDTH, HEIGHT)), 14)}
 
 fireball = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball1.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
-            1: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball2.png").convert_alpha(), (WIDTH, HEIGHT)), 10)}
+            1: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball2.png").convert_alpha(), (WIDTH, HEIGHT)), 8),
+            2: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball3.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+            3: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball4.png").convert_alpha(), (WIDTH, HEIGHT)), 10)}
 
 ATTACKS = {
     "punch": punch,
@@ -407,6 +410,7 @@ def render_hud(delta):
     global player_rot
     global player_health
     global goal_coords
+    global elapsed_time
 
     quantization_step = 1
 
@@ -465,8 +469,13 @@ def render_hud(delta):
 
     display.blit(faces[face], (0, face_y_pos))
 
-    now = time.time()
-    minutes, seconds = divmod(int(now - level_start_time), 60)
+    elapsed_time = int(time.time() - level_start_time)
+    minutes, seconds = divmod(elapsed_time, 60)
+
+    def get_score():
+        score = 1000
+        while level_start_time > 30:
+            score = score - (50 * elapsed_time - 30)
 
     floor_title = FONTS['floor'].render("FLOOR", True, (255, 255, 255))
     timer_title = FONTS['timer'].render("TIMER", True, (255, 255, 255))
@@ -609,22 +618,19 @@ class Sprite:
             ghost_x += direction_x * ghost_speed
             ghost_y += direction_y * ghost_speed
 
-
             self.coords = (ghost_x, ghost_y)
 
 
 
 def next_level():
     global total_score
-    global score
+    global elapsed_time
     global level
     global MAP
 
-    total_score += score
+    total_score += 1000 - min(max(elapsed_time - 20, 0) * 40, 1000)
     display.fill(pygame.Color(0,0,0))
     render_hud(0)
-    print("Score:")
-    print(score)
     print("Total:")
     print(total_score)
     pygame.display.flip()
