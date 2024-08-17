@@ -8,6 +8,9 @@ TEMP_WALL = [0, 2, 3, 4]
 MAP_WIDTH = 0
 MAP_HEIGHT = 0
 
+level = 1
+level_start_time = 0
+
 HUD_OFFSET = 150
 WIDTH = 800
 HEIGHT = 600
@@ -82,18 +85,21 @@ def try_move(vx, vy):
     player_coords['x'] += dx
     if MAP[int(player_coords['x'])][int(player_coords['y'])] in TEMP_WALL or \
        check_player_sprite_collision(player_coords['x'], player_coords['y']):
-        player_coords['x'] -= dx
         if MAP[int(player_coords['x'])][int(player_coords['y'])] == 4:
-            load_level()
+            print("next")
+            next_level()
             return
+        player_coords['x'] -= dx
+
 
     player_coords['y'] += dy
     if MAP[int(player_coords['x'])][int(player_coords['y'])] in TEMP_WALL or \
        check_player_sprite_collision(player_coords['x'], player_coords['y']):
-        player_coords['y'] -= dy
         if MAP[int(player_coords['x'])][int(player_coords['y'])] == 4:
-            load_level()
+            print("next")
+            next_level()
             return
+        player_coords['y'] -= dy
 
 
 def try_move_forward(delta, fv):
@@ -346,8 +352,11 @@ def ray_cast_better():
 
 def render_hud(delta):
     global player_coords
+    global level
+    global level_start_time
     global player_rot
     global goal_coords
+
 
     quantization_step = 1
 
@@ -396,11 +405,14 @@ def render_hud(delta):
     display.blit(hud, (0, 0))
     display.blit(arrow, (0, 20 + y_pos))
 
+    now = time.time()
+    minutes, seconds = divmod(int(now - level_start_time), 60)
+
     floor_title = FONTS['floor'].render("FLOOR", True, (255, 255, 255))
     timer_title = FONTS['timer'].render("TIMER", True, (255, 255, 255))
-    floor_counter = FONTS['floor_n'].render("1", True, (200, 200, 200))
-    timer_counter = FONTS['floor_n'].render(f"0:00", True, (200, 200, 200))
-    now = pygame.time.get_ticks()
+    floor_counter = FONTS['floor_n'].render(f"{level}", True, (200, 200, 200))
+    timer_counter = FONTS['floor_n'].render(f"{minutes}:{seconds:02}", True, (200, 200, 200))
+
 
     display.blit(floor_title, (48.5, 475))
     display.blit(timer_title, (195.5, 475))
@@ -560,9 +572,11 @@ def next_level():
     level += 1
     load_level()
 
+
 def load_level():
     global running
     global player_coords
+    global level_start_time
     global player_rotation
     global camera_plane
     global MAP
@@ -598,6 +612,7 @@ def load_level():
     display.blit(pygame.transform.scale(render_map(get_stationary()), (750, 550)), (25,25))
     pygame.display.flip()
     pygame.time.wait(1000)
+    level_start_time = time.time()
 
     sprites = []
 
@@ -628,7 +643,7 @@ def init():
                 104: load_image(pygame.image.load("imgs/opened_door.png").convert(), True)}
 
     total_score = 0
-    level = 0
+    level = 1
 
     gen_map()
     frames = 0
