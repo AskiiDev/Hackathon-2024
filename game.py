@@ -382,6 +382,7 @@ def render_hud(delta):
     global level
     global level_start_time
     global player_rot
+    global player_health
     global goal_coords
 
     quantization_step = 1
@@ -439,7 +440,7 @@ def render_hud(delta):
     floor_title = FONTS['floor'].render("FLOOR", True, (255, 255, 255))
     timer_title = FONTS['timer'].render("TIMER", True, (255, 255, 255))
     health_title = FONTS['timer'].render("HP", True, (255, 255, 255))
-    health_counter = FONTS['floor_n'].render(f"100", True, (200, 200, 200))
+    health_counter = FONTS['floor_n'].render(f"{player_health}", True, (200, 200, 200))
     floor_counter = FONTS['floor_n'].render(f"{level}", True, (200, 200, 200))
     timer_counter = FONTS['floor_n'].render(f"{minutes}:{seconds:02}", True, (200, 200, 200))
 
@@ -513,7 +514,8 @@ def check_player_sprite_collision(player_x, player_y):
             player_x > sprite_x + (0.5 - sprite_width) and
             player_y < sprite_y + (0.5 + sprite_height) and
             player_y > sprite_y + (0.5 - sprite_height)):
-            # handle_collision(sprite)  # Call a function to handle what happens on collision
+            # sprite.hit_player()  # Call a function to handle what happens on collision
+            # print("HI")
             return True
 
     return False
@@ -533,6 +535,7 @@ def check_sprite_collision(sprite1, sprite2):
 
 class Sprite:
     global anim_frames 
+    global player_health
 
     def __init__(self, coords, texture, res, width, health=1, solid=True, s_type='default'):
         self.coords = coords
@@ -546,9 +549,28 @@ class Sprite:
     def handle_collision(self, sprite):
         pass
 
+    def hit_player():
+        pass
+
     def simulate(self):
         if self.s_type == "ghost":
             self.texture = ghost_images[ (anim_frames) % 3 ]
+
+            player_x, player_y = player_coords['x'], player_coords['y']
+            ghost_x, ghost_y = self.coords
+
+            direction_x = player_x - ghost_x
+            direction_y = player_y - ghost_y
+
+            distance = math.sqrt(direction_x ** 2 + direction_y ** 2)
+            if distance != 0:
+                direction_x /= distance
+                direction_y /= distance
+
+            ghost_speed = 0.02
+
+            self.coords = (ghost_x + direction_x * ghost_speed, ghost_y + direction_y * ghost_speed)
+
 
 
 def next_level():
@@ -592,7 +614,9 @@ def load_level():
     global goal_coords
     global sprites
     global score
+    global player_health
 
+    player_health = 100
 
     score = 0
     background = None
@@ -633,6 +657,7 @@ def init():
     global MAP
     global frames
     global anim_frames
+    global player_health
 
     textures = {0: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
                 1: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
@@ -647,6 +672,8 @@ def init():
 
     total_score = 0
     level = 1
+
+    player_health = 100
 
     gen_map(display)
     frames = 0
@@ -665,6 +692,11 @@ def init():
 
         for i in sprites:
             i.simulate()
+
+        if check_player_sprite_collision(player_coords['x'], player_coords['y']):
+            player_health -= 1
+
+
 
         ray_cast_better()
         render_weapon(frames)
