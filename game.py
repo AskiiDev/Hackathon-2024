@@ -644,6 +644,8 @@ def spawn_monster():
     location = get_random_location_near_player(10, 15)
     option = random.randint(0, 2)
 
+    option = 1
+
     if option == 0:
         sprites.append(Sprite(location, ghost_images[0], (256, 256), 0.3, s_type="ghost", solid=False))
     if option == 1:
@@ -714,6 +716,7 @@ class Sprite:
     def handle_collision(self, sprite):
         if sprite.s_type == "proj":
             self.get_hit()
+
             #print("test")
 
     def get_hit(self):
@@ -738,6 +741,8 @@ class Sprite:
         global player_health
         global lower_hand
         global new_spell
+
+        print(self.s_type)
         if self.s_type == "proj":
             damage_player(20)
             sprites.remove(self)
@@ -864,8 +869,8 @@ class Sprite:
                             self.texture = goblin_images[self.frame]
 
                         if self.frame == 6:
-                            direction_x = player_coords['x'] - self.coords[0]
-                            direction_y = player_coords['y'] - self.coords[1]
+                            direction_x = player_coords['x'] - 0.5 - self.coords[0]
+                            direction_y = player_coords['y'] - 0.5 - self.coords[1]
                             distance = math.hypot(direction_x, direction_y)
 
                             if distance > 0:
@@ -873,7 +878,7 @@ class Sprite:
                                 direction_y /= distance
 
                             projectile = (Sprite((self.coords[0] + (0.5 * direction_x), self.coords[1] + (0.5 * direction_y)), 
-                                                 fireball_proj, (256,256), 0.1, solid=False, invulnerable=True, 
+                                                 fireball_proj, (256,256), 0.2, solid=True, invulnerable=True, 
                                                  speed=0.1, dir=(direction_x, direction_y), s_type="proj"))
                             sprites.append(projectile)
                         
@@ -886,7 +891,7 @@ class Sprite:
             if self.s_type == "ogre":
                 if not self.attacking:
                     self.texture = ogre_images[0]
-                    player_x, player_y = player_coords['x'] + 0.5, player_coords['y'] + 0.5
+                    player_x, player_y = player_coords['x'] - 0.5, player_coords['y'] - 0.5
                     ogre_x, ogre_y = self.coords
 
                     # Calculate the direction vector and distance from the goblin to the player
@@ -1056,6 +1061,22 @@ def init():
     global agg
     global new_spell
     global damage_frames
+    
+
+    display.fill((0,0,0))
+    text_surface = FONTS['floor'].render("Start game: \n Press space.", False, (255,255,255))
+    display.blit(text_surface, (20,20))
+    menu = True
+    pygame.display.flip()
+    while menu:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    menu = False
+                    break
+        
+    
+
 
     can_attack = True
     lower_hand = False
@@ -1084,8 +1105,9 @@ def init():
         spawn_monster()
     
     # pygame.mixer.music.play()
-
+            
     while running:
+
         if frames % 300 == 0:
             for i in range(level):
                 spawn_monster()
@@ -1161,7 +1183,7 @@ def init():
 
             i.simulate()
         
-        check_player_sprite_collision(player_coords['x'], player_coords['y'])
+        check_player_sprite_collision(player_coords['x'] + 0.5, player_coords['y'] + 0.5)
 
         # if check_player_sprite_collision(player_coords['x'], player_coords['y']):
         #     damage_player(1)
