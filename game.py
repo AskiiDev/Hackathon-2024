@@ -584,8 +584,8 @@ def fire(max_distance):
 
     for dist in range(max_distance):
         # Calculate the current point along the fire's path
-        fire_x = player_x + fire_dx * dist
-        fire_y = player_y + fire_dy * dist
+        fire_x = player_x + fire_dx * dist / 2
+        fire_y = player_y + fire_dy * dist / 2
 
         # Check if this point hits any sprite
         for sprite in sprites:
@@ -669,9 +669,12 @@ class Sprite:
             #print("test")
 
     def get_hit(self):
-        if self.s_type == "barrel" and not self.texture == barrel_destroyed_img :
+        if self.s_type == "barrel":
+            if self.texture == barrel_destroyed_img:
+                return
             self.texture = barrel_destroyed_img
             self.solid = False
+            self.width = 0
             sprites.append(Sprite(self.coords, fireball_powerup, (256,256), 0.1, s_type="fireball_pu", invulnerable=True))
             return
         if self.invulnerable:
@@ -700,7 +703,7 @@ class Sprite:
         global player_health
         global sprites
         if self.mark_for_death == 1:
-            sprites.append(Sprite((self.coords), gore_pile, (256, 256), 0.05,  invulnerable=True, s_type = 'gore pile'))
+            sprites.append(Sprite((self.coords), gore_pile, (256, 256), 0.1,  invulnerable=True, s_type = 'gore pile'))
             self.texture = gore_pile
             sprites.remove(self)
 
@@ -967,6 +970,8 @@ def load_level():
     
     gen_barrels()
     barrels = get_barrels()
+    if (start_pos in barrels):
+        barrels.remove(start_pos)
     # print(barrels)
 
 
@@ -1057,7 +1062,7 @@ def init():
                     anim_counter = frames
                     current_weapon_state = ATTACKS[held_spell][current_anim_frame][0]
                     if held_spell == "punch" and current_anim_frame == 1:
-                        fire(2)
+                        fire(4)
         elif can_attack:
             current_weapon_state = ATTACKS[held_spell][0][0]
 
