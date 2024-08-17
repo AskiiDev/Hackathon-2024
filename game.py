@@ -23,6 +23,10 @@ TEXTURE_HEIGHT = 256
 running = True
 
 pygame.init()
+pygame.font.init()
+
+font = pygame.font.Font("almendra/Almendra-Regular.ttf", 50)
+
 clock = pygame.time.Clock()
 display = pygame.display.set_mode((WIDTH, HEIGHT))
 
@@ -72,18 +76,18 @@ def try_move(vx, vy):
     player_coords['x'] += dx
     if MAP[int(player_coords['x'])][int(player_coords['y'])] in TEMP_WALL or \
        check_player_sprite_collision(player_coords['x'], player_coords['y']):
+        player_coords['x'] -= dx
         if MAP[int(player_coords['x'])][int(player_coords['y'])] == 4:
             next_level()
             return
-        player_coords['x'] -= dx
 
     player_coords['y'] += dy
     if MAP[int(player_coords['x'])][int(player_coords['y'])] in TEMP_WALL or \
        check_player_sprite_collision(player_coords['x'], player_coords['y']):
+        player_coords['y'] -= dy
         if MAP[int(player_coords['x'])][int(player_coords['y'])] == 4:
             next_level()
             return
-        player_coords['y'] -= dy
 
 
 def try_move_forward(delta, fv):
@@ -385,6 +389,9 @@ def render_hud(delta):
     y_pos = (y_pos // quantization_step) * quantization_step
     display.blit(hud, (0, 0))
     display.blit(arrow, (0, y_pos))
+
+    #timer = font.render("Hello World!", True, (255, 255, 255))
+    #display.blit(timer, (40, 250))
 
 
 def render_weapon(delta):
