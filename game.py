@@ -5,6 +5,10 @@ import time
 
 TEMP_WALL = [0, 2, 3, 4]
 
+hands_y = 0
+
+HANDS_LOWER_LIMIT = 600
+
 anim_frames = 0
 
 MAP_WIDTH = 0
@@ -481,6 +485,7 @@ def render_hud(delta):
 
 def render_weapon(weapon_state, delta):
     global anim_frames
+    global hands_y
     quantization_step = 6
 
     x_pos = int(15 * math.cos(delta / 10))
@@ -490,7 +495,7 @@ def render_weapon(weapon_state, delta):
     x_pos = (x_pos // quantization_step) * quantization_step
     y_pos = (y_pos // quantization_step) * quantization_step
 
-    display.blit(weapon_state, (x_pos, y_pos))
+    display.blit(weapon_state, (x_pos, hands_y + y_pos))
 
 
 def fire(max_distance):
@@ -697,7 +702,11 @@ def init():
     global frames
     global anim_frames
     global player_health
+    global hands_y
 
+    can_attack = True
+    lower_hand = False
+    raise_hand = False
     attack = False
     held_spell = "fireball"
 
@@ -736,14 +745,36 @@ def init():
             if frames - anim_counter >= ATTACKS[held_spell][current_anim_frame][1]:
                 current_anim_frame += 1
                 if current_anim_frame >= len(ATTACKS[held_spell]):
-                    attack = False
-                    current_anim_frame = 0
-                    held_spell = "punch"
+                    if held_spell != "punch":
+                        attack = False
+                        lower_hand = True
+                        can_attack = False
+                    else:
+                        attack = False
+                        current_anim_frame = 0
+                        # current_weapon_state = punch[0][0]
                 else:
                     anim_counter = frames
                     current_weapon_state = ATTACKS[held_spell][current_anim_frame][0]
-        else:
+        elif can_attack:
             current_weapon_state = ATTACKS[held_spell][0][0]
+
+        if lower_hand and hands_y < HANDS_LOWER_LIMIT:
+            hands_y += 30
+            if hands_y >= HANDS_LOWER_LIMIT:
+                lower_hand = False
+                raise_hand = True
+                held_spell = "punch"
+                current_weapon_state = punch[0][0]
+
+        if raise_hand and hands_y > 0:
+            hands_y -= 30
+            if hands_y <= 0:
+                hands_y = 0
+                raise_hand = False
+                can_attack = True
+                current_anim_frame = 0
+
 
         input_handler(delta_time)
 
@@ -760,8 +791,9 @@ def init():
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
-                    fire(2)
-                    attack = True
+                    if can_attack:
+                        fire(2)
+                        attack = True
                 if event.key == pygame.K_ESCAPE:
                     quit()
                 if event.key == pygame.K_TAB:
