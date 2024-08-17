@@ -410,12 +410,15 @@ def render_hud(delta):
 
     floor_title = FONTS['floor'].render("FLOOR", True, (255, 255, 255))
     timer_title = FONTS['timer'].render("TIMER", True, (255, 255, 255))
+    health_title = FONTS['timer'].render("HP", True, (255, 255, 255))
+    health_counter = FONTS['floor_n'].render(f"100", True, (200, 200, 200))
     floor_counter = FONTS['floor_n'].render(f"{level}", True, (200, 200, 200))
     timer_counter = FONTS['floor_n'].render(f"{minutes}:{seconds:02}", True, (200, 200, 200))
 
-
     display.blit(floor_title, (48.5, 475))
     display.blit(timer_title, (195.5, 475))
+    display.blit(health_title, (523, 475))
+    display.blit(health_counter, (520, 520))
     display.blit(floor_counter, (98.5, 520))
     display.blit(timer_counter, (220, 520))
 
