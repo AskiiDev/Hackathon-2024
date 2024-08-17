@@ -194,6 +194,16 @@ ghost_images = {
     1: load_image(pygame.image.load("imgs/enemies/ghost/A4.png").convert_alpha(), False),
     2: load_image(pygame.image.load("imgs/enemies/ghost/A5.png").convert_alpha(), False)
 }
+goblin_images = {
+    0: load_image(pygame.image.load("imgs/enemies/goblin/A1.png").convert_alpha(), False),
+    1: load_image(pygame.image.load("imgs/enemies/goblin/A2.png").convert_alpha(), False),
+    2: load_image(pygame.image.load("imgs/enemies/goblin/A3.png").convert_alpha(), False),
+    3: load_image(pygame.image.load("imgs/enemies/goblin/A4.png").convert_alpha(), False),
+    4: load_image(pygame.image.load("imgs/enemies/goblin/A5.png").convert_alpha(), False),
+    5: load_image(pygame.image.load("imgs/enemies/goblin/A6.png").convert_alpha(), False),
+    6: load_image(pygame.image.load("imgs/enemies/goblin/A7.png").convert_alpha(), False),
+    7: load_image(pygame.image.load("imgs/enemies/goblin/A8.png").convert_alpha(), False)
+}
 
 
 def distance_fog(distance, scaled_texture):
@@ -534,7 +544,6 @@ def check_sprite_collision(sprite1, sprite2):
 class Sprite:
     global anim_frames 
     
-
     def __init__(self, coords, texture, res, width, health=1, solid=True, s_type='default'):
         self.coords = coords
         self.texture = texture
@@ -649,8 +658,11 @@ def load_level():
 
     sprites = []
 
-    ghost_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), ghost_images[1], (256,256), 0.5, health=5, solid=True, s_type="ghost")
-    sprites.append(ghost_test)
+    # ghost_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), ghost_images[1], (256,256), 0.5, health=5, solid=True, s_type="ghost")
+    # sprites.append(ghost_test)
+
+    goblin_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), goblin_images[0], (256,256), 0.5, health=5, solid=True, s_type="goblin")
+    sprites.append(goblin_test)
 
     # check_sprite_collision(gobbo, gobbo2)
 
