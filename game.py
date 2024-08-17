@@ -165,10 +165,10 @@ def ray_cast_better():
     w = WIDTH
     h = HEIGHT - 150
 
-    #if background is None:
-    #background = pygame.transform.scale(pygame.image.load("imgs/bg.png").convert(), (w, h))
+    # if background is None:
+    #     background = pygame.transform.scale(pygame.image.load("imgs/bg.png").convert(), (w, h))
 
-    #display.blit(background, (0, 0))
+    # display.blit(background, (0, 0))
 
     z_buffer = []
 
@@ -389,7 +389,6 @@ def render_weapon(delta):
 
     display.blit(hand, (x_pos, 20 + y_pos))
 
-<<<<<<< Updated upstream
 def hitscan_fire(range):
     # Initialize the ray starting at the player's position
     ray_pos_x = player_coords['x']
@@ -494,8 +493,7 @@ def check_sprite_collision(sprite1, sprite2):
         return True
 
     return False
-=======
->>>>>>> Stashed changes
+
 
 class Sprite:
     def __init__(self, coords, texture, res, width, health=1, solid=True):
