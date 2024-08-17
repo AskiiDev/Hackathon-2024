@@ -103,14 +103,31 @@ punch = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.
          3: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist3.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
          4: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.png").convert_alpha(), (WIDTH, HEIGHT)), 14)}
 
+
 fireball = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball1.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
             1: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball2.png").convert_alpha(), (WIDTH, HEIGHT)), 8),
             2: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball3.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
             3: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball4.png").convert_alpha(), (WIDTH, HEIGHT)), 10)}
 
+
+lightning = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning1.png").convert_alpha(), (WIDTH, HEIGHT)), 1),
+             1: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning2.png").convert_alpha(), (WIDTH, HEIGHT)), 1),
+             2: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning3.png").convert_alpha(), (WIDTH, HEIGHT)), 2),
+             3: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning4.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+             4: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning5.png").convert_alpha(), (WIDTH, HEIGHT)), 8),
+             5: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning4.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+             6: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning5.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+             7: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning4.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+             8: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning3.png").convert_alpha(), (WIDTH, HEIGHT)), 2),
+             9: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning4.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+             10: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning3.png").convert_alpha(), (WIDTH, HEIGHT)), 2),
+             11: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning2.png").convert_alpha(), (WIDTH, HEIGHT)), 1),
+             12: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning1.png").convert_alpha(), (WIDTH, HEIGHT)), 1)}
+
 ATTACKS = {
     "punch": punch,
-    "fireball": fireball
+    "fireball": fireball,
+    "lightning": lightning
 }
 
 # -----------------------------------------------------------------------------------------------
@@ -647,7 +664,7 @@ def spawn_monster():
     option = 1
 
     if option == 0:
-        sprites.append(Sprite(location, ghost_images[0], (256, 256), 0.3, s_type="ghost", solid=False))
+        sprites.append(Sprite(location, ghost_images[0], (256, 256), 0.3, s_type="ghost"))
     if option == 1:
         sprites.append(Sprite(location, goblin_images[0], (256, 256), 0.3, s_type="goblin"))
     if option == 2:
@@ -794,7 +811,7 @@ class Sprite:
             if self.s_type == "ghost":
                 self.texture = ghost_images[anim_frames % 3]
 
-                player_x, player_y = player_coords['x'] - 0.5, player_coords['y'] - 0.5
+                player_x, player_y = player_coords['x'], player_coords['y']
                 ghost_x, ghost_y = self.coords
 
                     # Calculate the direction vector from the ghost to the player
@@ -810,20 +827,17 @@ class Sprite:
                     # Set the speed at which the ghost moves towards the player
                 ghost_speed = 0.02  # Adjust this value for desired speed
 
-                if distance >= 0.35:
                     # Update the ghost's position to move along the direction vector
-                    ghost_x += direction_x * ghost_speed
-                    ghost_y += direction_y * ghost_speed
-                
-                if distance < 0.35:
-                    damage_player(1)
+                ghost_x += direction_x * ghost_speed
+                ghost_y += direction_y * ghost_speed
+
 
                 self.coords = (ghost_x, ghost_y)
 
             if self.s_type == "goblin":
                 if not self.attacking:
                     self.texture = goblin_images[0]
-                    player_x, player_y = player_coords['x'] - 0.5, player_coords['y'] - 0.5
+                    player_x, player_y = player_coords['x'], player_coords['y']
                     goblin_x, goblin_y = self.coords
 
                     # Calculate the direction vector and distance from the goblin to the player
@@ -877,8 +891,8 @@ class Sprite:
                                 direction_x /= distance
                                 direction_y /= distance
 
-                            projectile = (Sprite((self.coords[0] + (0.5 * direction_x), self.coords[1] + (0.5 * direction_y)), 
-                                                 fireball_proj, (256,256), 0.2, solid=True, invulnerable=True, 
+                            projectile = (Sprite((self.coords[0] - 0.5 + (0.5 * direction_x), self.coords[1] - 0.5 + (0.5 * direction_y)), 
+                                                 fireball_proj, (256,256), 0.1, solid=False, invulnerable=True, 
                                                  speed=0.1, dir=(direction_x, direction_y), s_type="proj"))
                             sprites.append(projectile)
                         
@@ -945,8 +959,8 @@ class Sprite:
 
                         if ogre_anim[self.frame] == ogre_images[6] and not self.has_damaged:
                             self.has_damaged = True
-                            direction_x = player_coords['x'] + 0.5 - self.coords[0]
-                            direction_y = player_coords['y'] + 0.5 - self.coords[1]
+                            direction_x = player_coords['x'] - self.coords[0]
+                            direction_y = player_coords['y'] - self.coords[1]
                             distance = math.hypot(direction_x, direction_y)
 
                             if distance < 0.5:
@@ -1101,7 +1115,7 @@ def init():
 
     load_level()
 
-    for i in range(5):
+    for i in range(level):
         spawn_monster()
     
     # pygame.mixer.music.play()
@@ -1146,16 +1160,16 @@ def init():
         elif can_attack:
             current_weapon_state = ATTACKS[held_spell][0][0]
 
-        if lower_hand and hands_y < HANDS_LOWER_LIMIT:
+        if lower_hand and hands_y < HANDS_LOWER_LIMIT and not attack:
             can_attack = False
             hands_y += 30
             if hands_y >= HANDS_LOWER_LIMIT:
                 lower_hand = False
                 raise_hand = True
                 held_spell = new_spell
-                current_weapon_state = punch[0][0]
+                current_weapon_state = ATTACKS[held_spell][0][0]
 
-        if raise_hand and hands_y > 0:
+        if raise_hand and hands_y > 0 and not attack:
             can_attack = False
             hands_y -= 30
             if hands_y <= 0:
@@ -1170,7 +1184,7 @@ def init():
                 continue
             if math.hypot(player_coords['x'] - i[0], player_coords['y'] - i[1]) < barrel_gen_range:
                 agg.append((i[0], i[1]))
-                sprites.append(Sprite(i, barrel_img, (256,256), 0.3, s_type="barrel"))
+                sprites.append(Sprite(i, barrel_img, (256, 256), 0.3, s_type="barrel"))
                 # barrels.remove(i)
         
 
@@ -1192,7 +1206,7 @@ def init():
         render_weapon(current_weapon_state, frames)
         
         if damage_frames > 0:
-            display.fill((min(255, 10 * damage_frames) ,0,0), special_flags=pygame.BLEND_ADD)
+            display.fill((10 * damage_frames,0,0), special_flags=pygame.BLEND_ADD)
             damage_frames -= 1
 
         render_hud(frames)
