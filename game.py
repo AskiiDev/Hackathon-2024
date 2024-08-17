@@ -564,7 +564,7 @@ class Sprite:
     global anim_frames
     global player_health
 
-    def __init__(self, coords, texture, res, width, health=1, solid=True, s_type='default', speed=0, dir=(0,0)):
+    def __init__(self, coords, texture, res, width, health=1, invulnerable=False, solid=True, s_type='default', speed=0, dir=(0,0)):
         self.coords = coords
         self.texture = texture
         self.res = res
@@ -575,11 +575,14 @@ class Sprite:
         self.mark_for_death = 0
         self.speed  = speed
         self.dir = dir
+        self.invulnerable = invulnerable
 
     def handle_collision(self, sprite):
         pass
 
     def get_hit(self):
+        if self.invulnerable:
+            return
         if not self.mark_for_death:
             self.died = True
             self.mark_for_death = 20
@@ -593,14 +596,14 @@ class Sprite:
 
     def simulate(self):
         if self.mark_for_death == 1:
-            sprites.append(Sprite((self.coords), gore_pile, self.res, self.width, s_type = 'gore pile'))
+            sprites.append(Sprite((self.coords), gore_pile, (256, 256), 0.3, s_type = 'gore pile'))
             sprites.remove(self)
 
         elif self.mark_for_death > 1:
             self.mark_for_death -= 1
 
         else:        
-            if self.type == "proj":
+            if self.s_type == "proj":
                 self.coords[0] += self.dir[0] * self.speed 
                 self.coords[1] += self.dir[1] * self.speed
 
@@ -746,8 +749,8 @@ def load_level():
     sprites = []
 
 
-    # barrel = Sprite((start_pos[0] + 1, start_pos[1] + 1), load_image(pygame.image.load("imgs/barrel.png").convert_alpha(), False), (64, 64), 0.5, solid=True)
-    # sprites.append(barrel)
+    barrel = Sprite((start_pos[0] + 1, start_pos[1] + 1), load_image(pygame.image.load("imgs/barrel.png").convert_alpha(), False), (64, 64), 0.5, solid=True)
+    sprites.append(barrel)
     # ghost_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), ghost_images[1], (256,256), 0.5, health=5, solid=True, s_type="ghost")
     # sprites.append(ghost_test)
 
