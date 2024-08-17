@@ -71,7 +71,9 @@ arrow_images = {
 }
 
 faces = {
-    'healthy': pygame.transform.scale(pygame.image.load("imgs/faces/healthy.png").convert_alpha(), (WIDTH, HEIGHT))
+    'healthy': pygame.transform.scale(pygame.image.load("imgs/faces/healthy.png").convert_alpha(), (WIDTH, HEIGHT)),
+    'neutral': pygame.transform.scale(pygame.image.load("imgs/faces/neutral.png").convert_alpha(), (WIDTH, HEIGHT)),
+    'hurt': pygame.transform.scale(pygame.image.load("imgs/faces/hurt.png").convert_alpha(), (WIDTH, HEIGHT))
 }
 
 hud = pygame.transform.scale(pygame.image.load("imgs/HUD.png").convert_alpha(), (WIDTH, HEIGHT))
@@ -120,10 +122,6 @@ def try_move_forward(delta, fv):
 def try_move_right(delta, rv):
     rvx, rvy = -player_rotation['y'], player_rotation['x']
     try_move(delta * rvx * rv, delta * rvy * rv)
-
-
-def turn():
-    pass
 
 
 def input_handler(delta_time):
