@@ -5,7 +5,7 @@ import numpy as np
 import pygame
 
 WIDTH = 200
-HEIGHT = 200
+HEIGHT = 150
 
 ROOMS = 100
 
@@ -194,6 +194,7 @@ def gen_map_grid(rooms):
     return grid
 
 def gen_map():
+    print("maps")
     global stationary
     global joinable
     global discovered
@@ -230,7 +231,7 @@ def gen_map():
     discovered.append(stationary[-1])
 
 def render_map(rooms):
-    colours = np.array([[0, 0, 0], [0, 0, 255], [255, 255, 0]], dtype=np.uint8)  # 3x3 array for RGB values
+    colours = np.array([[0, 0, 0], [0, 0, 255], [255, 255, 0], [0,255,0], [0,255,0]], dtype=np.uint8)  # 3x3 array for RGB values
     surface = pygame.Surface((WIDTH, HEIGHT))
     grid = np.array(gen_map_grid(rooms), dtype=np.uint8)  # Convert grid to NumPy array
 

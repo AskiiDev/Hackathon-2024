@@ -13,7 +13,6 @@ HEIGHT = 600
 
 HALF_PI = 1.57
 
-RENDER_DISTANCE = 10
 ACCURACY = 2
 RAY_STEP_SIZE = 0.1
 
@@ -523,7 +522,29 @@ class Sprite:
     def handle_collision(self, sprite):
         pass
 
+def next_level():
+    global total_score
+    global score 
+    global level
+    global MAP
 
+    total_score += score
+    display.fill(pygame.Color(0,0,0))
+    print("Score:")
+    print(score)
+    print("Total:")
+    print(total_score)
+    pygame.display.flip()
+    
+    gen_map()
+    pygame.time.wait(1000)
+    display.fill(pygame.Color(0,0,0))
+    
+    print("Generating map...")
+    pygame.display.flip()
+
+    level += 1
+    load_level()
 
 def load_level():
     global running
@@ -537,26 +558,20 @@ def load_level():
     global textures
     global goal_coords
     global sprites
+    global score
 
+
+    score = 0
     background = None
-    textures = {0: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
-                1: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
-                2: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
-                3: load_image(pygame.image.load("imgs/closed_door.png").convert(), False),
-                4: load_image(pygame.image.load("imgs/opened_door.png").convert(), False), 
-                100: load_image(pygame.image.load("imgs/wall.png").convert(), True), 
-                101: load_image(pygame.image.load("imgs/wall.png").convert(), True), 
-                102: load_image(pygame.image.load("imgs/wall.png").convert(), True), 
-                103: load_image(pygame.image.load("imgs/closed_door.png").convert(), True),
-                104: load_image(pygame.image.load("imgs/opened_door.png").convert(), True)}
+    
     
     # sprite_key = {4: Sprite((0,0), ())}
 
     pygame.event.set_grab(True)
     pygame.mouse.set_visible(False)
 
-    gen_map()
     MAP = gen_map_grid(get_stationary())
+
     MAP_WIDTH = len(MAP)
     MAP_HEIGHT = len(MAP[0])
     start_pos = get_start_pos()
@@ -564,6 +579,11 @@ def load_level():
     goal_coords = get_real_end_pos()
     player_rotation = {'x': -1, 'y': 0}
     camera_plane = {'x': 0, 'y': 0.66}
+
+
+    display.blit(pygame.transform.scale(render_map(get_stationary()), (750, 550)), (25,25))
+    pygame.display.flip()
+    pygame.time.wait(1000)
 
     sprites = []
 
@@ -576,7 +596,27 @@ def load_level():
 
 def init():
     global running
+    global total_score
+    global textures
+    global level
+    global MAP
 
+
+    textures = {0: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
+                1: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
+                2: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
+                3: load_image(pygame.image.load("imgs/closed_door.png").convert(), False),
+                4: load_image(pygame.image.load("imgs/opened_door.png").convert(), False), 
+                100: load_image(pygame.image.load("imgs/wall.png").convert(), True), 
+                101: load_image(pygame.image.load("imgs/wall.png").convert(), True), 
+                102: load_image(pygame.image.load("imgs/wall.png").convert(), True), 
+                103: load_image(pygame.image.load("imgs/closed_door.png").convert(), True),
+                104: load_image(pygame.image.load("imgs/opened_door.png").convert(), True)}
+
+    total_score = 0
+    level = 0
+
+    gen_map()
     frames = 0
 
     load_level()
@@ -596,7 +636,7 @@ def init():
                 if event.key == pygame.K_ESCAPE:
                     quit()
                 if event.key == pygame.K_TAB:
-                    load_level()
+                    next_level()
             if event.type == pygame.QUIT:
                 running = False
 
