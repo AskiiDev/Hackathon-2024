@@ -207,11 +207,26 @@ def load_image(image, darken, colorKey=None):
 
     return ret
 
+
+textures = {
+    0: load_image(pygame.image.load("imgs/wall.png").convert(), False),
+    1: load_image(pygame.image.load("imgs/wall.png").convert(), False),
+    2: load_image(pygame.image.load("imgs/wall.png").convert(), False),
+    3: load_image(pygame.image.load("imgs/closed_door.png").convert(), False),
+    4: load_image(pygame.image.load("imgs/opened_door.png").convert(), False),
+    100: load_image(pygame.image.load("imgs/wall.png").convert(), True),
+    101: load_image(pygame.image.load("imgs/wall.png").convert(), True),
+    102: load_image(pygame.image.load("imgs/wall.png").convert(), True),
+    103: load_image(pygame.image.load("imgs/closed_door.png").convert(), True),
+    104: load_image(pygame.image.load("imgs/opened_door.png").convert(), True)
+}
+
 ghost_images = {
     0: load_image(pygame.image.load("imgs/enemies/ghost/A3.png").convert_alpha(), False),
     1: load_image(pygame.image.load("imgs/enemies/ghost/A4.png").convert_alpha(), False),
     2: load_image(pygame.image.load("imgs/enemies/ghost/A5.png").convert_alpha(), False)
 }
+
 goblin_images = {
     0: load_image(pygame.image.load("imgs/enemies/goblin/A1.png").convert_alpha(), False),
     1: load_image(pygame.image.load("imgs/enemies/goblin/A2.png").convert_alpha(), False),
@@ -220,7 +235,9 @@ goblin_images = {
     4: load_image(pygame.image.load("imgs/enemies/goblin/A5.png").convert_alpha(), False),
     5: load_image(pygame.image.load("imgs/enemies/goblin/A6.png").convert_alpha(), False),
     6: load_image(pygame.image.load("imgs/enemies/goblin/A7.png").convert_alpha(), False),
-    7: load_image(pygame.image.load("imgs/enemies/goblin/A8.png").convert_alpha(), False)
+    7: load_image(pygame.image.load("imgs/enemies/goblin/A8.png").convert_alpha(), False),
+    "die1": load_image(pygame.image.load("imgs/enemies/goblin/GDying1.png").convert_alpha(), False),
+    "die2": load_image(pygame.image.load("imgs/enemies/goblin/GDying2.png").convert_alpha(), False)
 }
 
 gore_pile = load_image(pygame.image.load("imgs/enemies/gorepile.png").convert_alpha(), False)
@@ -237,7 +254,7 @@ def distance_fog(distance, scaled_texture):
 
 def ray_cast_better():
     global background
-    global textures
+    
     global sprites
 
     w = WIDTH
@@ -533,7 +550,7 @@ def fire(max_distance):
             if (sprite_x + (0.5 - sprite_width) < fire_x < sprite_x + (0.5 + sprite_width) and
                 sprite_y+ (0.5 - sprite_width) < fire_y < sprite_y + (0.5 + sprite_width)):
                 print(f"Hit detected on sprite at {sprite.coords} after {dist} units")
-                # handle_hit(sprite)  # Call a function to handle the hit
+                sprite.handle_hit()  # Call a function to handle the hit
                 return
 
         # Optionally, check if the bullet hits a wall or other obstacle in the map
@@ -569,9 +586,10 @@ def check_sprite_collision(sprite1, sprite2):
         sprite1.coords[1] < sprite2.coords[1] + sprite2.width and
         sprite1.coords[1] + sprite1.width > sprite2.coords[1]):
 
-        print(f"Collision detected!")
+        # print(f"Collision detected!")
         sprite1.handle_collision(sprite2)
         sprite2.handle_collision(sprite1)
+        print("test")
         return True
 
     return False
@@ -598,7 +616,9 @@ class Sprite:
         self.frame = 0
 
     def handle_collision(self, sprite):
-        pass
+        if sprite.s_type == "proj":
+            self.get_hit()
+            print("test")
 
     def get_hit(self):
         if self.invulnerable:
@@ -611,15 +631,24 @@ class Sprite:
         # if self.s_type == "goblin":
         #     self.texture = goblin_images["falling"]
 
+    def handle_hit(self):
+        self.get_hit()
+
     def hit_player(self):
         pass
 
     def simulate(self):
+        global sprites
         if self.mark_for_death == 1:
             sprites.append(Sprite((self.coords), gore_pile, (256, 256), 0.3, s_type = 'gore pile'))
-            sprites.remove(self)
+            self.texture = gore_pile
+            # sprites.remove(self)
 
         elif self.mark_for_death > 1:
+            if self.mark_for_death <= 10:
+                self.texture = goblin_images["die2"]
+            elif self.mark_for_death <= 20:
+                self.texture = goblin_images["die1"]
             self.mark_for_death -= 1
 
         else:        
@@ -629,7 +658,10 @@ class Sprite:
                 if MAP[int(self.coords[0] + 0.5)][int(self.coords[1] + 0.5)] in TEMP_WALL:
                     print("yayy")
                     sprites.remove(self)
-
+                
+                for i in sprites:
+                    if i.s_type != "proj":
+                        check_sprite_collision(self, i)
 
             if self.s_type == "ghost":
                 self.texture = ghost_images[anim_frames % 3]
@@ -714,13 +746,13 @@ class Sprite:
                                 direction_x /= distance
                                 direction_y /= distance
 
-                            projectile = (Sprite((self.coords[0] - 0.5 + (0.5 * direction_x), self.coords[1] - 0.5 + (0.5 * direction_y)), fireball_proj, (256,256), 0.1, solid=False, speed=0.1, dir=(direction_x, direction_y), s_type="proj"))
+                            projectile = (Sprite((self.coords[0] - 0.5 + (0.5 * direction_x), self.coords[1] - 0.5 + (0.5 * direction_y)), fireball_proj, (256,256), 0.1, solid=False, invulnerable=True, speed=0.1, dir=(direction_x, direction_y), s_type="proj"))
                             sprites.append(projectile)
                         
                         if self.frame >= 8:
                             self.texture = goblin_images[0]
                         
-                        if self.frame == 20: # amount of 'recovery' frames for the attack
+                        if self.frame == 12: # amount of 'recovery' frames for the attack
                             self.attacking = False
                         
                         
@@ -771,7 +803,7 @@ def load_level():
     global MAP_WIDTH
     global MAP_HEIGHT
     global background
-    global textures
+    
     global goal_coords
     global sprites
     global score
@@ -819,7 +851,6 @@ def load_level():
 def init():
     global running
     global total_score
-    global textures
     global level
     global sprites
     global MAP
@@ -835,17 +866,6 @@ def init():
     attack = False
     
     held_spell = "fireball"
-
-    textures = {0: load_image(pygame.image.load("imgs/wall.png").convert(), False),
-                1: load_image(pygame.image.load("imgs/wall.png").convert(), False),
-                2: load_image(pygame.image.load("imgs/wall.png").convert(), False),
-                3: load_image(pygame.image.load("imgs/closed_door.png").convert(), False),
-                4: load_image(pygame.image.load("imgs/opened_door.png").convert(), False),
-                100: load_image(pygame.image.load("imgs/wall.png").convert(), True),
-                101: load_image(pygame.image.load("imgs/wall.png").convert(), True),
-                102: load_image(pygame.image.load("imgs/wall.png").convert(), True),
-                103: load_image(pygame.image.load("imgs/closed_door.png").convert(), True),
-                104: load_image(pygame.image.load("imgs/opened_door.png").convert(), True)}
 
     total_score = 0
     level = 1
@@ -878,9 +898,8 @@ def init():
 
                         if held_spell == "fireball":
                             # sprites.append(Sprite(player_coords, fireball_proj, (256,256), 0.1, dir=(player_rotation['x'], player_rotation['y']), speed=1, s_type="proj"))
-                            print("hi")
-                            print(player_rotation)
-                            sprites.append(Sprite((player_coords['x'] - 0.5 + (0.5 * player_rotation['x']), player_coords['y'] - 0.5 + (0.5 * player_rotation['y'])), fireball_proj, (256,256), 0.1, solid=False, speed=0.1, dir=(player_rotation['x'],player_rotation['y']), s_type="proj"))
+                            
+                            sprites.append(Sprite((player_coords['x'] - 0.5 + (0.5 * player_rotation['x']), player_coords['y'] - 0.5 + (0.5 * player_rotation['y'])), fireball_proj, (256,256), 0.1, solid=False, invulnerable=True, speed=0.1, dir=(player_rotation['x'],player_rotation['y']), s_type="proj"))
                             # pass
                     else:
                         attack = False
