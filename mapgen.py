@@ -7,7 +7,7 @@ import pygame
 WIDTH = 200
 HEIGHT = 150
 
-ROOMS = 20
+ROOMS = 100
 
 ROOM_MIN = 3
 ROOM_MAX = 7
