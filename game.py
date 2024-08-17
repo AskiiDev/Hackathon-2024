@@ -3,11 +3,16 @@ import pygame
 import math
 import time
 
+
+STATE = "MENU"
+
 TEMP_WALL = [0, 2, 3, 4]
 
 hands_y = 0
 lower_hand = False
 new_spell = "punch"
+
+damage_frames = 0
 
 player_health = 100
 sprites = []
@@ -905,7 +910,12 @@ class Sprite:
 
 def damage_player(amount):
     global player_health
-    player_health = max(0, player_health - 1)
+    global damage_frames
+
+    damage_frames += amount
+    player_health = max(0, player_health - amount)
+    if player_health == 0:
+        print("gameover")
 
 
 def next_level():
@@ -1019,6 +1029,7 @@ def init():
     global held_spell
     global lower_hand
     global new_spell
+    global damage_frames
 
     can_attack = True
     lower_hand = False
@@ -1114,6 +1125,11 @@ def init():
 
         ray_cast_better()
         render_weapon(current_weapon_state, frames)
+        
+        if damage_frames > 0:
+            display.fill((10 * damage_frames ,0,0), special_flags=pygame.BLEND_ADD)
+            damage_frames -= 1
+
         render_hud(frames)
 
         for event in pygame.event.get():
