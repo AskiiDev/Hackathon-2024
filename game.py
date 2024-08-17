@@ -642,7 +642,7 @@ class Sprite:
         if self.mark_for_death == 1:
             sprites.append(Sprite((self.coords), gore_pile, (256, 256), 0.3, s_type = 'gore pile'))
             self.texture = gore_pile
-            # sprites.remove(self)
+            sprites.remove(self)
 
         elif self.mark_for_death > 1:
             if self.mark_for_death <= 10:
@@ -781,7 +781,7 @@ def next_level():
     print(total_score)
     pygame.display.flip()
 
-    pygame.time.wait(1000)
+    # pygame.time.wait(1000)
     display.fill(pygame.Color(0,0,0))
     render_hud(0)
 
@@ -828,7 +828,7 @@ def load_level():
     camera_plane = {'x': 0, 'y': 0.66}
 
 
-    pygame.time.wait(1000)
+    # pygame.time.wait(1000)
     level_start_time = time.time()
 
     sprites = []
