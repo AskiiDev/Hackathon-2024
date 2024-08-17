@@ -646,7 +646,7 @@ class Sprite:
     global sprites
     global anim_frames
     global player_health
-    global lower_hand 
+    global lower_hand
     global new_spell
 
     def __init__(self, coords, texture, res, width, health=1, invulnerable=False, solid=True, s_type='default', speed=0, dir=(0,0)):
