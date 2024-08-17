@@ -110,7 +110,9 @@ fireball = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/
 
 
 lightning = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning1.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
-             1: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning1.png").convert_alpha(), (WIDTH, HEIGHT)), 4)}
+             1: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning2.png").convert_alpha(), (WIDTH, HEIGHT)), 8),
+             2: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning3.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+             3: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning2.png").convert_alpha(), (WIDTH, HEIGHT)), 4)}
 
 ATTACKS = {
     "punch": punch,
@@ -1042,8 +1044,8 @@ def init():
     raise_hand = False
     attack = False
 
-    new_spell = "punch"
-    held_spell = "punch"
+    new_spell = "lightning"
+    held_spell = "lightning"
 
     total_score = 0
     level = 1
@@ -1075,7 +1077,7 @@ def init():
                         attack = False
                         lower_hand = True
                         can_attack = False
-                        new_spell = "punch"
+                        new_spell = "lightning"
 
                         if held_spell == "fireball":                            
                             sprites.append(Sprite((player_coords['x'] - 0.5 + (0.5 * player_rotation['x']), player_coords['y'] - 0.5 + (0.5 * player_rotation['y'])), 
