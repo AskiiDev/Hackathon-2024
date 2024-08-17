@@ -78,7 +78,7 @@ def try_move(vx, vy):
        check_player_sprite_collision(player_coords['x'], player_coords['y']):
         player_coords['x'] -= dx
         if MAP[int(player_coords['x'])][int(player_coords['y'])] == 4:
-            next_level()
+            load_level()
             return
 
     player_coords['y'] += dy
@@ -86,7 +86,7 @@ def try_move(vx, vy):
        check_player_sprite_collision(player_coords['x'], player_coords['y']):
         player_coords['y'] -= dy
         if MAP[int(player_coords['x'])][int(player_coords['y'])] == 4:
-            next_level()
+            load_level()
             return
 
 
