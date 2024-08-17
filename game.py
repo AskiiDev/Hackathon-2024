@@ -1095,8 +1095,6 @@ def init():
                 can_attack = True
                 current_anim_frame = 0
 
-      
-
         barrel_gen_range = 10
         
         for i in barrels:
