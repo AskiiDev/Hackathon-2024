@@ -4,13 +4,13 @@ import numpy as np
 
 import pygame
 
-WIDTH = 20
-HEIGHT = 20
+WIDTH = 6
+HEIGHT = 6
 
 ROOMS = 2
 
-ROOM_MIN = 7
-ROOM_MAX = 7
+ROOM_MIN = 5
+ROOM_MAX = 5
 
 TRANSFORMS = [(-1, -1), (0, -1), (1, -1),
               (-1, 0), (1, 0),

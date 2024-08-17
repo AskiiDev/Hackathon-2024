@@ -951,6 +951,9 @@ def load_level():
 
     sprites = []
 
+    barrel_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), barrel_img, (256,256), 0.5, s_type="barrel")
+    sprites.append(barrel_test)
+
     # ghost_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), ghost_images[1], (256,256), 0.5, health=5, solid=True, s_type="ghost")
     # sprites.append(ghost_test)
 
@@ -1049,6 +1052,8 @@ def init():
                 raise_hand = False
                 can_attack = True
                 current_anim_frame = 0
+
+        print((player_coords['x'], player_coords['y']))        
 
         barrel_gen_range = 15
         array_np = np.array(barrels)
