@@ -30,6 +30,8 @@ player_coords = {'x': 2, 'y': 2}
 player_rot = HALF_PI
 player_rotation = {'x': 0, 'y': -1}
 
+goal_coords = {}
+
 FOV = HALF_PI / 2
 WALK_SPEED = 2
 TURN_SPEED = 0.003
@@ -39,6 +41,18 @@ MOVE_MAP = {pygame.K_w: 'w',
             pygame.K_a: 'a',
             pygame.K_d: 'd',
             pygame.K_SPACE: 'space'}
+
+
+arrow_images = {
+    'n': pygame.transform.scale(pygame.image.load("imgs/arrow/arrow_n.png").convert_alpha(), (WIDTH, HEIGHT)),
+    'ne': pygame.transform.scale(pygame.image.load("imgs/arrow/arrow_ne.png").convert_alpha(), (WIDTH, HEIGHT)),
+    'e': pygame.transform.scale(pygame.image.load("imgs/arrow/arrow_e.png").convert_alpha(), (WIDTH, HEIGHT)),
+    'se': pygame.transform.scale(pygame.image.load("imgs/arrow/arrow_se.png").convert_alpha(), (WIDTH, HEIGHT)),
+    's': pygame.transform.scale(pygame.image.load("imgs/arrow/arrow_s.png").convert_alpha(), (WIDTH, HEIGHT)),
+    'sw': pygame.transform.scale(pygame.image.load("imgs/arrow/arrow_sw.png").convert_alpha(), (WIDTH, HEIGHT)),
+    'w': pygame.transform.scale(pygame.image.load("imgs/arrow/arrow_w.png").convert_alpha(), (WIDTH, HEIGHT)),
+    'nw': pygame.transform.scale(pygame.image.load("imgs/arrow/arrow_nw.png").convert_alpha(), (WIDTH, HEIGHT)),
+}
 
 
 # -----------------------------------------------------------------------------------------------
@@ -92,12 +106,13 @@ def input_handler(delta_time):
 
     # print(player_rotation)
     turn_delta = - pygame.mouse.get_rel()[0] * TURN_SPEED
+    player_rot += turn_delta
 
     old_player_rotation = player_rotation.copy()
     player_rotation['x'] = (
-                old_player_rotation['x'] * math.cos(turn_delta) - old_player_rotation['y'] * math.sin(turn_delta))
+            old_player_rotation['x'] * math.cos(turn_delta) - old_player_rotation['y'] * math.sin(turn_delta))
     player_rotation['y'] = (
-                old_player_rotation['x'] * math.sin(turn_delta) + old_player_rotation['y'] * math.cos(turn_delta))
+            old_player_rotation['x'] * math.sin(turn_delta) + old_player_rotation['y'] * math.cos(turn_delta))
 
     old_camera_plane = camera_plane.copy()
     camera_plane['x'] = (old_camera_plane['x'] * math.cos(turn_delta) - old_camera_plane['y'] * math.sin(turn_delta))
@@ -151,7 +166,7 @@ def ray_cast_better():
     h = HEIGHT - 150
 
     #if background is None:
-        #background = pygame.transform.scale(pygame.image.load("imgs/bg.png").convert(), (w, h))
+    #background = pygame.transform.scale(pygame.image.load("imgs/bg.png").convert(), (w, h))
 
     #display.blit(background, (0, 0))
 
@@ -273,7 +288,6 @@ def ray_cast_better():
         sprite_x = sprite.coords[0] + 0.5 - player_coords['x']
         sprite_y = sprite.coords[1] + 0.5 - player_coords['y']
 
-
         inv_det = 1.0 / (camera_plane['x'] * player_rotation['y'] - player_rotation['x'] * camera_plane['y'])
 
         transform_x = inv_det * (player_rotation['y'] * sprite_x - player_rotation['x'] * sprite_y)
@@ -309,10 +323,57 @@ def ray_cast_better():
                                  (stripe, draw_start_y))
 
 
-def render_hud():
+def render_hud(delta):
+    global player_coords
+    global player_rot
+    global goal_coords
+
+    quantization_step = 1
+
+    y_pos = int(3 * abs(math.sin(delta / 10)))
+
+    # Function to calculate angle to goal
+    def get_angle_to_goal(player_coords, goal_coords):
+        dx = goal_coords[0] - (player_coords['x'])
+        dy = goal_coords[1] - (player_coords['y'])
+        return math.atan2(dy, dx)
+
+    # Function to select arrow texture based on angle
+
+    def get_arrow_texture(player_rot, angle_to_goal):
+        angle_diff = (angle_to_goal - player_rot) % (2 * math.pi)
+
+        # Determine the direction based on the angle difference
+        if 0 <= angle_diff < math.pi / 8or angle_diff > 15 * math.pi / 8:
+            return arrow_images['e']
+        elif math.pi / 8 <= angle_diff < 3 * math.pi / 8:
+            return arrow_images['ne']
+        elif 3 * math.pi / 8 <= angle_diff < 5 * math.pi / 8:
+            return arrow_images['n']
+        elif 5 * math.pi / 8 <= angle_diff < 7 * math.pi / 8:
+            return arrow_images['nw']
+        elif 7 * math.pi / 8 <= angle_diff < 9 * math.pi / 8:
+            return arrow_images['w']
+        elif 9 * math.pi / 8 <= angle_diff < 11 * math.pi / 8:
+            return arrow_images['sw']
+        elif 11 * math.pi / 8 <= angle_diff < 13 * math.pi / 8:
+            return arrow_images['s']
+        elif 13 * math.pi / 8 <= angle_diff < 15 * math.pi / 8:
+            return arrow_images['se']
+        else:
+            return arrow_images['e']
+
+    # Usage
+    angle_to_goal = get_angle_to_goal(player_coords, goal_coords)
+    arrow_texture = get_arrow_texture(-angle_to_goal, -player_rot)
+    #print(angle_to_goal)
+    arrow = pygame.transform.scale(arrow_texture, (WIDTH, HEIGHT))
+
     hud = pygame.transform.scale(pygame.image.load("imgs/HUD.png").convert_alpha(), (WIDTH, HEIGHT))
 
+    y_pos = (y_pos // quantization_step) * quantization_step
     display.blit(hud, (0, 0))
+    display.blit(arrow, (0, y_pos))
 
 
 def render_weapon(delta):
@@ -328,6 +389,7 @@ def render_weapon(delta):
 
     display.blit(hand, (x_pos, 20 + y_pos))
 
+<<<<<<< Updated upstream
 def hitscan_fire(range):
     # Initialize the ray starting at the player's position
     ray_pos_x = player_coords['x']
@@ -432,6 +494,8 @@ def check_sprite_collision(sprite1, sprite2):
         return True
 
     return False
+=======
+>>>>>>> Stashed changes
 
 class Sprite:
     def __init__(self, coords, texture, res, width, health=1, solid=True):
@@ -452,6 +516,7 @@ def init():
     global MAP_HEIGHT
     global background
     global texture
+    global goal_coords
     global sprites
 
     frames = 0
@@ -468,6 +533,7 @@ def init():
     MAP_HEIGHT = len(MAP[0])
     start_pos = get_start_pos()
     player_coords = {'x': start_pos[0] + 0.5, 'y': start_pos[1] + 0.5}
+    goal_coords = get_end_pos()
     player_rotation = {'x': -1, 'y': 0}
     camera_plane = {'x': 0, 'y': 0.66}
 
@@ -491,7 +557,7 @@ def init():
         input_handler(delta_time)
         ray_cast_better()
         render_weapon(frames)
-        render_hud()
+        render_hud(frames)
 
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
