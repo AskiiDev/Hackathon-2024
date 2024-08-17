@@ -590,6 +590,10 @@ class Sprite:
         self.dir = dir
         self.invulnerable = invulnerable
 
+        self.attacking = False
+        self.prev_anim_frame = 0
+        self.frame = 0
+
     def handle_collision(self, sprite):
         pass
 
@@ -651,33 +655,79 @@ class Sprite:
                 self.coords = (ghost_x, ghost_y)
 
             if self.s_type == "goblin":
-                player_x, player_y = player_coords['x'], player_coords['y']
-                goblin_x, goblin_y = self.coords
+                if not self.attacking:
+                    self.texture = goblin_images[0]
+                    player_x, player_y = player_coords['x'], player_coords['y']
+                    goblin_x, goblin_y = self.coords
 
-                # Calculate the direction vector and distance from the goblin to the player
-                direction_x = player_x - goblin_x
-                direction_y = player_y - goblin_y
-                distance = math.hypot(direction_x, direction_y)
+                    # Calculate the direction vector and distance from the goblin to the player
+                    direction_x = player_x - goblin_x
+                    direction_y = player_y - goblin_y
+                    distance = math.hypot(direction_x, direction_y)
 
-                if distance > 0:
-                    direction_x /= distance
-                    direction_y /= distance
+                    if distance > 0:
+                        direction_x /= distance
+                        direction_y /= distance
 
-                goblin_speed = 0.03
+                    goblin_speed = 0.03
 
-                if distance < 3 or distance > 4:
-                    move_factor = -goblin_speed if distance < 3 else goblin_speed
+                    mx = False
+                    my = False
 
-                    # Calculate the tentative new position
-                    new_x = goblin_x + direction_x * move_factor
-                    new_y = goblin_y + direction_y * move_factor
+                    if distance < 3 or distance > 4:
+                        move_factor = -goblin_speed if distance < 3 else goblin_speed
 
-                    # Check for collisions and update position if no collision
-                    if not (MAP[int(new_x + 0.5 - self.width)][int(new_y + 0.5 - self.width)] in TEMP_WALL or
-                            MAP[int(new_x + 0.5 + self.width)][int(new_y + 0.5 + self.width)] in TEMP_WALL):
-                        goblin_x, goblin_y = new_x, new_y
+                        new_x = goblin_x + direction_x * move_factor
 
-                    self.coords = (goblin_x, goblin_y)
+                        if not (MAP[int(new_x + 0.5 - self.width)][int(goblin_y + 0.5 - self.width)] in TEMP_WALL or
+                                MAP[int(new_x + 0.5 + self.width)][int(goblin_y + 0.5 + self.width)] in TEMP_WALL):
+                            goblin_x = new_x
+                            mx = True
+                        
+                        new_y = goblin_y + direction_y * move_factor
+                            
+                        if not (MAP[int(goblin_x + 0.5 - self.width)][int(new_y + 0.5 - self.width)] in TEMP_WALL or
+                                MAP[int(goblin_x + 0.5 + self.width)][int(new_y + 0.5 + self.width)] in TEMP_WALL):
+                            goblin_y = new_y
+                            mx = True
+
+                        self.coords = (goblin_x, goblin_y)
+
+                    if not (mx or my): # only try to fire if 3-4 units away from player, or if in corner
+                        self.attacking = True # start attack anim
+                        self.frame = 0
+                else:
+                    if anim_frames != self.prev_anim_frame:
+                        self.frame += 1
+                        if self.frame < 8:
+                            self.texture = goblin_images[self.frame]
+
+                        if self.frame == 6:
+                            direction_x = player_coords['x'] - self.coords[0]
+                            direction_y = player_coords['y'] - self.coords[1]
+                            distance = math.hypot(direction_x, direction_y)
+
+                            if distance > 0:
+                                direction_x /= distance
+                                direction_y /= distance
+
+                            projectile = (Sprite((self.coords[0] - 0.5 + (0.5 * direction_x), self.coords[1] - 0.5 + (0.5 * direction_y)), fireball_proj, (256,256), 0.1, solid=False, speed=0.1, dir=(direction_x, direction_y), s_type="proj"))
+                            sprites.append(projectile)
+                        
+                        if self.frame >= 8:
+                            self.texture = goblin_images[0]
+                        
+                        if self.frame == 20: # amount of 'recovery' frames for the attack
+                            self.attacking = False
+                        
+                        
+        
+
+        self.prev_anim_frame = anim_frames
+
+
+
+
 
 
 
