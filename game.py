@@ -896,7 +896,7 @@ def init():
             if hands_y >= HANDS_LOWER_LIMIT:
                 lower_hand = False
                 raise_hand = True
-                held_spell = "punch"
+                held_spell = "fireball"
                 current_weapon_state = punch[0][0]
 
         if raise_hand and hands_y > 0:
