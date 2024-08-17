@@ -553,7 +553,7 @@ def init():
     camera_plane = {'x': 0, 'y': 0.66}
 
     sprites = []
-    # end_trigger = Sprite(goal_coords, load_image(pygame.image.load("imgs/barrel.png").convert(), False, colorKey=(0, 0, 0)), (64, 64), 0.6, s_type='goal')
+    # end_trigger = Sprite(goal_coords, load_image(pygame.image.load("imgs/barrel.png").convert(), False, colorKey=(0, 0, 0)), (64, 64), 0.6, s_type='goal', solid=False)
     # sprites.append(end_trigger)
 
     gobbo = Sprite((start_pos[0] - 1, start_pos[1] + 0),

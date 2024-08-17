@@ -4,10 +4,10 @@ import numpy as np
 
 import pygame
 
-WIDTH = 200
-HEIGHT = 200
+WIDTH = 20
+HEIGHT = 20
 
-ROOMS = 100
+ROOMS = 10
 
 ROOM_MIN = 3
 ROOM_MAX = 7
@@ -181,14 +181,14 @@ def gen_map_grid(rooms):
 
     # End room midpoint logic
     end_room_mid = get_end_pos()
-    distances = np.sqrt([(pos[0] - end_room_mid[0]) ** 2 + (pos[1] - end_room_mid[1]) ** 2 for pos in valid_wall_positions])
+    distances = np.sqrt([(pos[0] - end_room_mid[0]) ** 2 + (pos[1] - end_room_mid[1]) ** 2 for pos in wall_positions])
 
     if len(distances) == 0:
         print("No distances calculated for end room.")
         return grid
 
     nearest_wall_idx = np.argmin(distances)
-    nearest_wall_position = valid_wall_positions[nearest_wall_idx]
+    nearest_wall_position = wall_positions[nearest_wall_idx]
     grid[nearest_wall_position[0], nearest_wall_position[1]] = 4
 
     return grid
