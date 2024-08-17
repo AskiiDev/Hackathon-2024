@@ -5,6 +5,7 @@ import time
 
 TEMP_WALL = [0, 2, 3, 4]
 
+anim_frames = 0
 
 MAP_WIDTH = 0
 MAP_HEIGHT = 0
@@ -78,9 +79,16 @@ faces = {
 
 hud = pygame.transform.scale(pygame.image.load("imgs/HUD.png").convert_alpha(), (WIDTH, HEIGHT))
 
-punch = {0: pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist1.png").convert_alpha(), (WIDTH, HEIGHT)),
-         1: pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist1.png").convert_alpha(), (WIDTH, HEIGHT))}
+punch = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist1.png").convert_alpha(), (WIDTH, HEIGHT)), 2),
+         1: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.png").convert_alpha(), (WIDTH, HEIGHT)), 2),
+         2: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist3.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
+         3: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist4.png").convert_alpha(), (WIDTH, HEIGHT)), 13),
+         4: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist3.png").convert_alpha(), (WIDTH, HEIGHT)), 2),
+         5: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.png").convert_alpha(), (WIDTH, HEIGHT)), 2)}
 
+ATTACKS = {
+    "punch": [punch, 4]
+}
 
 # -----------------------------------------------------------------------------------------------
 
@@ -158,8 +166,6 @@ def input_handler(delta_time):
         try_move_right(delta_time, -1)
     if 'a' in move:
         try_move_right(delta_time, 1)
-    if 'space' in move:
-        fire(2)
 
 
 # -----------------------------------------------------------------------------------------------
@@ -169,15 +175,15 @@ def load_image(image, darken, colorKey=None):
     ret = []
     # Convert the image to include alpha transparency
     image = image.convert_alpha()
-    
+
     for i in range(image.get_width()):
         s = pygame.Surface((1, image.get_height()), pygame.SRCALPHA).convert_alpha()
         s.blit(image, (-i, 0))
-        
+
         # If a color key is provided, set it as transparent
         if colorKey is not None:
             s.set_colorkey(colorKey)
-        
+
         # Apply darkening effect if specified
         if darken:
             # Darken only the non-transparent parts
@@ -188,7 +194,7 @@ def load_image(image, darken, colorKey=None):
                         s.set_at((x, y), pixel)
 
         ret.append(s)
-    
+
     return ret
 
 ghost_images = {
@@ -308,7 +314,7 @@ def ray_cast_better():
 
         A = max(1 - ((math.sqrt((map_x - ray_pos_x) ** 2 + (map_y - ray_pos_y) ** 2)) / 11), 0)
         # A = 1
-        
+
         scaled_texture = distance_fog(A, pygame.transform.scale(textures[tex_num][tex_x], (1, line_height)))
 
         display.blit(scaled_texture, (x, draw_start))
@@ -460,7 +466,8 @@ def render_hud(delta):
     display.blit(timer_counter, (220, 520))
 
 
-def render_weapon(delta):
+def render_weapon(weapon_state, delta):
+    global anim_frames
     quantization_step = 6
 
     x_pos = int(15 * math.cos(delta / 10))
@@ -470,7 +477,7 @@ def render_weapon(delta):
     x_pos = (x_pos // quantization_step) * quantization_step
     y_pos = (y_pos // quantization_step) * quantization_step
 
-    display.blit(punch[0], (x_pos, y_pos))
+    display.blit(weapon_state, (x_pos, y_pos))
 
 
 def fire(max_distance):
@@ -509,11 +516,10 @@ def fire(max_distance):
     print("No hit detected.")
 
 
-
 def check_player_sprite_collision(player_x, player_y):
     for sprite in sprites:
         if not sprite.solid:
-            continue  
+            continue
         sprite_x, sprite_y = sprite.coords
         sprite_width, sprite_height = sprite.width, sprite.width
 
@@ -534,7 +540,7 @@ def check_sprite_collision(sprite1, sprite2):
         sprite1.coords[0] + sprite1.width > sprite2.coords[0] and
         sprite1.coords[1] < sprite2.coords[1] + sprite2.width and
         sprite1.coords[1] + sprite1.width > sprite2.coords[1]):
-        
+
         print(f"Collision detected!")
         sprite1.handle_collision(sprite2)
         sprite2.handle_collision(sprite1)
@@ -543,7 +549,7 @@ def check_sprite_collision(sprite1, sprite2):
     return False
 
 class Sprite:
-    global anim_frames 
+    global anim_frames
     global player_health
 
     def __init__(self, coords, texture, res, width, health=1, solid=True, s_type='default'):
@@ -554,7 +560,7 @@ class Sprite:
         self.health = health
         self.solid = solid
         self.s_type = s_type
-    
+
     def handle_collision(self, sprite):
         pass
 
@@ -584,15 +590,15 @@ class Sprite:
                 # Update the ghost's position to move along the direction vector
             ghost_x += direction_x * ghost_speed
             ghost_y += direction_y * ghost_speed
-    
-    
+
+
             self.coords = (ghost_x, ghost_y)
 
 
 
 def next_level():
     global total_score
-    global score 
+    global score
     global level
     global MAP
 
@@ -604,11 +610,11 @@ def next_level():
     print("Total:")
     print(total_score)
     pygame.display.flip()
-    
+
     pygame.time.wait(1000)
     display.fill(pygame.Color(0,0,0))
     render_hud(0)
-    
+
     print("Generating map...")
     gen_map(display)
     pygame.display.flip()
@@ -637,7 +643,7 @@ def load_level():
 
     score = 0
     background = None
-    
+
     pygame.event.set_grab(True)
     pygame.mouse.set_visible(False)
 
@@ -676,14 +682,16 @@ def init():
     global anim_frames
     global player_health
 
-    textures = {0: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
-                1: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
-                2: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
+    attack = None
+
+    textures = {0: load_image(pygame.image.load("imgs/wall.png").convert(), False),
+                1: load_image(pygame.image.load("imgs/wall.png").convert(), False),
+                2: load_image(pygame.image.load("imgs/wall.png").convert(), False),
                 3: load_image(pygame.image.load("imgs/closed_door.png").convert(), False),
-                4: load_image(pygame.image.load("imgs/opened_door.png").convert(), False), 
-                100: load_image(pygame.image.load("imgs/wall.png").convert(), True), 
-                101: load_image(pygame.image.load("imgs/wall.png").convert(), True), 
-                102: load_image(pygame.image.load("imgs/wall.png").convert(), True), 
+                4: load_image(pygame.image.load("imgs/opened_door.png").convert(), False),
+                100: load_image(pygame.image.load("imgs/wall.png").convert(), True),
+                101: load_image(pygame.image.load("imgs/wall.png").convert(), True),
+                102: load_image(pygame.image.load("imgs/wall.png").convert(), True),
                 103: load_image(pygame.image.load("imgs/closed_door.png").convert(), True),
                 104: load_image(pygame.image.load("imgs/opened_door.png").convert(), True)}
 
@@ -694,7 +702,10 @@ def init():
 
     gen_map(display)
     frames = 0
-    anim_frames = 0
+
+    current_weapon_state = punch[0][0]
+    current_anim_frame = 0
+    anim_counter = 0
 
     load_level()
     # pygame.mixer.music.play()
@@ -705,6 +716,17 @@ def init():
         display.fill((0, 0, 0))
         delta_time = 1 / clock.tick(60)
 
+        if attack is not None:
+            if frames - anim_counter >= punch[current_anim_frame][1]:
+                current_anim_frame += 1
+                if current_anim_frame >= len(punch):
+                    attack = None
+                    current_anim_frame = 0
+                    current_weapon_state = punch[0][0]
+                else:
+                    anim_counter = frames
+                    current_weapon_state = punch[current_anim_frame][0]
+
         input_handler(delta_time)
 
         for i in sprites:
@@ -714,13 +736,14 @@ def init():
             player_health = max(0, player_health - 1)
 
         ray_cast_better()
-        render_weapon(frames)
+        render_weapon(current_weapon_state, frames)
         render_hud(frames)
 
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_z:
-                    start_punch()
+                if event.key == pygame.K_SPACE:
+                    fire(2)
+                    attack = "punch"
                 if event.key == pygame.K_ESCAPE:
                     quit()
                 if event.key == pygame.K_TAB:
