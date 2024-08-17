@@ -629,7 +629,7 @@ def next_level():
     global MAP
 
     total_score += 1000 - min(max(elapsed_time - 20, 0) * 40, 1000)
-    display.fill(pygame.Color(0,0,0))
+    display.fill(pygame.Color(0, 0, 0))
     render_hud(0)
     print("Total:")
     print(total_score)
@@ -680,7 +680,6 @@ def load_level():
     goal_coords = get_real_end_pos()
     player_rotation = {'x': -1, 'y': 0}
     camera_plane = {'x': 0, 'y': 0.66}
-
 
     pygame.time.wait(1000)
     level_start_time = time.time()
@@ -808,7 +807,7 @@ def init():
                 running = False
 
         pygame.display.flip()
-        # print(clock.get_fps())
+        print(clock.get_fps())
 
 
 init()
