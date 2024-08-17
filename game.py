@@ -108,7 +108,7 @@ def try_move(vx, vy):
     if MAP[int(player_coords['x'])][int(player_coords['y'])] in TEMP_WALL or \
        check_player_sprite_collision(player_coords['x'], player_coords['y']):
         if MAP[int(player_coords['x'])][int(player_coords['y'])] == 4:
-            print("next")
+            # print("next")
             next_level()
             return
         player_coords['x'] -= dx
@@ -118,7 +118,7 @@ def try_move(vx, vy):
     if MAP[int(player_coords['x'])][int(player_coords['y'])] in TEMP_WALL or \
        check_player_sprite_collision(player_coords['x'], player_coords['y']):
         if MAP[int(player_coords['x'])][int(player_coords['y'])] == 4:
-            print("next")
+            # print("next")
             next_level()
             return
         player_coords['y'] -= dy
@@ -564,7 +564,7 @@ class Sprite:
     global anim_frames
     global player_health
 
-    def __init__(self, coords, texture, res, width, health=1, solid=True, s_type='default'):
+    def __init__(self, coords, texture, res, width, health=1, solid=True, s_type='default', speed=0, dir=(0,0)):
         self.coords = coords
         self.texture = texture
         self.res = res
@@ -573,13 +573,14 @@ class Sprite:
         self.solid = solid
         self.s_type = s_type
         self.mark_for_death = 0
-        self.died = False
+        self.speed  = speed
+        self.dir = dir
 
     def handle_collision(self, sprite):
         pass
 
     def get_hit(self):
-        if not self.died:
+        if not self.mark_for_death:
             self.died = True
             self.mark_for_death = 20
         # if self.s_type == "ghost":
@@ -599,6 +600,13 @@ class Sprite:
             self.mark_for_death -= 1
 
         else:        
+            if self.type == "proj":
+                self.coords[0] += self.dir[0] * self.speed 
+                self.coords[1] += self.dir[1] * self.speed
+
+                if MAP[int(self.coords[1] + 0.5)][int(self.coords[1] + 0.5)] in TEMP_WALL:
+                    sprites.remove(self)
+
             if self.s_type == "ghost":
                 self.texture = ghost_images[anim_frames % 3]
 
@@ -738,8 +746,8 @@ def load_level():
     sprites = []
 
 
-    barrel = Sprite((start_pos[0] + 1, start_pos[1] + 1), load_image(pygame.image.load("imgs/barrel.png").convert_alpha(), False), (64, 64), 0.5, solid=True)
-    sprites.append(barrel)
+    # barrel = Sprite((start_pos[0] + 1, start_pos[1] + 1), load_image(pygame.image.load("imgs/barrel.png").convert_alpha(), False), (64, 64), 0.5, solid=True)
+    # sprites.append(barrel)
     # ghost_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), ghost_images[1], (256,256), 0.5, health=5, solid=True, s_type="ghost")
     # sprites.append(ghost_test)
 
