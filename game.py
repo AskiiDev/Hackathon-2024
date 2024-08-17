@@ -257,10 +257,29 @@ ogre_images = {
     "die2": load_image(pygame.image.load("imgs/enemies/ogre/ODying2.png").convert_alpha(), False)
 }
 
+ogre_anim = []
+
+ogre_anim += [ogre_images[0]] * 4
+ogre_anim += [ogre_images[1]] * 5
+ogre_anim += [ogre_images[2]] * 5
+ogre_anim += [ogre_images[3]] * 1
+ogre_anim += [ogre_images[4]] * 1
+ogre_anim += [ogre_images[5]] * 1
+ogre_anim += [ogre_images[6]] * 1
+ogre_anim += [ogre_images[7]] * 3
+ogre_anim += [ogre_images[6]] * 10
+ogre_anim += [ogre_images[5]] * 6
+ogre_anim += [ogre_images[4]] * 5
+ogre_anim += [ogre_images[3]] * 4
+ogre_anim += [ogre_images[2]] * 3
+ogre_anim += [ogre_images[1]] * 3
+ogre_anim += [ogre_images[0]] * 3
+
 gore_pile = load_image(pygame.image.load("imgs/enemies/gorepile.png").convert_alpha(), False)
 
 fireball_proj = load_image(pygame.image.load("imgs/attacks/fireball/fireball_proj.png"), False)
 barrel_img = load_image(pygame.image.load("imgs/barrel.png"), False)
+
 
 def distance_fog(distance, scaled_texture):
     dark_surface = pygame.Surface(scaled_texture.get_size())
@@ -607,7 +626,7 @@ def check_sprite_collision(sprite1, sprite2):
         # print(f"Collision detected!")
         sprite1.handle_collision(sprite2)
         sprite2.handle_collision(sprite1)
-        print("test")
+        #print("test")
         return True
 
     return False
@@ -637,7 +656,7 @@ class Sprite:
     def handle_collision(self, sprite):
         if sprite.s_type == "proj":
             self.get_hit()
-            print("test")
+            #print("test")
 
     def get_hit(self):
         if self.invulnerable:
@@ -683,12 +702,11 @@ class Sprite:
                 
             self.mark_for_death -= 1
 
-        else:        
+        else:
             if self.s_type == "proj":
                 self.coords = (self.coords[0] +  self.dir[0] * self.speed,  self.coords[1] + self.dir[1] * self.speed)
 
                 if MAP[int(self.coords[0] + 0.5)][int(self.coords[1] + 0.5)] in TEMP_WALL:
-                    print("yayy")
                     sprites.remove(self)
                 
                 for i in sprites:
@@ -826,30 +844,30 @@ class Sprite:
 
                     if distance < 0.5:
                         self.attacking = True
+
+                        self.has_damaged = False
                         self.frame = 0
 
                 else:
                     if anim_frames != self.prev_anim_frame:
                         self.frame += 1
-                        if self.frame < 8:
-                            self.texture = ogre_images[self.frame]
+                        if self.frame <= len(ogre_anim) - 1:
+                            self.texture = ogre_anim[self.frame]
 
-                        if self.frame == 6:
+                        if self.frame >= len(ogre_anim) - 1:
+                            self.frame = 0
+                            self.texture = ogre_images[0]
+                            self.attacking = False
+                            self.has_damaged = False
+
+                        if ogre_anim[self.frame] == ogre_images[6] and not self.has_damaged:
+                            self.has_damaged = True
                             direction_x = player_coords['x'] - self.coords[0]
                             direction_y = player_coords['y'] - self.coords[1]
                             distance = math.hypot(direction_x, direction_y)
 
                             if distance < 0.5:
                                 player_health -= 10
-
-                        if self.frame >= 8:
-                            self.texture = ogre_images[0]
-                        
-                        if self.frame == 12: # amount of 'recovery' frames for the attack
-                            self.attacking = False
-                        
-                        
-        
 
         self.prev_anim_frame = anim_frames
 
@@ -878,7 +896,6 @@ def next_level():
     display.fill(pygame.Color(0,0,0))
     render_hud(0)
 
-    print("Generating map...")
     gen_map(display)
     pygame.display.flip()
 
@@ -987,7 +1004,7 @@ def init():
 
     while running:
         frames += 1
-        anim_frames = int(frames / 20)
+        anim_frames = int(frames / 2)
         display.fill((0, 0, 0))
         delta_time = 1 / clock.tick(60)
 
