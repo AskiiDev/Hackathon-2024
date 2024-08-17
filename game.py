@@ -72,11 +72,17 @@ def try_move(vx, vy):
     player_coords['x'] += dx
     if MAP[int(player_coords['x'])][int(player_coords['y'])] in TEMP_WALL or \
        check_player_sprite_collision(player_coords['x'], player_coords['y']):
+        if MAP[int(player_coords['x'])][int(player_coords['y'])] == 4:
+            next_level()
+            return
         player_coords['x'] -= dx
 
     player_coords['y'] += dy
     if MAP[int(player_coords['x'])][int(player_coords['y'])] in TEMP_WALL or \
        check_player_sprite_collision(player_coords['x'], player_coords['y']):
+        if MAP[int(player_coords['x'])][int(player_coords['y'])] == 4:
+            next_level()
+            return
         player_coords['y'] -= dy
 
 
@@ -271,7 +277,7 @@ def ray_cast_better():
         #     sprite1_dist_sq = (sprite1.coords[0] - player_coords['x']) ** 2 + (sprite1.coords[1] - player_coords['y']) ** 2
         #     sprite2_dist_sq = (sprite2.coords[0] - player_coords['x']) ** 2 + (sprite2.coords[1] - player_coords['y']) ** 2
 
-        #     # Direct comparison of squared distances
+        #     # Direct comparison of squared distances2
         #     if sprite1_dist_sq > sprite2_dist_sq:
         #         return 1
         #     elif sprite1_dist_sq == sprite2_dist_sq:
@@ -509,6 +515,11 @@ class Sprite:
     
     def handle_collision(self, sprite):
         pass
+
+
+def next_level():
+    pass
+
 
 def init():
     global running
