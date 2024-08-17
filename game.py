@@ -102,14 +102,20 @@ punch = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.
          3: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist3.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
          4: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.png").convert_alpha(), (WIDTH, HEIGHT)), 14)}
 
+
 fireball = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball1.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
             1: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball2.png").convert_alpha(), (WIDTH, HEIGHT)), 8),
             2: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball3.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
             3: (pygame.transform.scale(pygame.image.load("imgs/attacks/fireball/fireball4.png").convert_alpha(), (WIDTH, HEIGHT)), 10)}
 
+
+lightning = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning1.png").convert_alpha(), (WIDTH, HEIGHT)), 4),
+             1: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning1.png").convert_alpha(), (WIDTH, HEIGHT)), 4)}
+
 ATTACKS = {
     "punch": punch,
-    "fireball": fireball
+    "fireball": fireball,
+    "lightning": lightning
 }
 
 # -----------------------------------------------------------------------------------------------
@@ -1088,7 +1094,7 @@ def init():
         elif can_attack:
             current_weapon_state = ATTACKS[held_spell][0][0]
 
-        if lower_hand and hands_y < HANDS_LOWER_LIMIT:
+        if lower_hand and hands_y < HANDS_LOWER_LIMIT and not attack:
             can_attack = False
             hands_y += 30
             if hands_y >= HANDS_LOWER_LIMIT:
@@ -1097,7 +1103,7 @@ def init():
                 held_spell = new_spell
                 current_weapon_state = punch[0][0]
 
-        if raise_hand and hands_y > 0:
+        if raise_hand and hands_y > 0 and not attack:
             can_attack = False
             hands_y -= 30
             if hands_y <= 0:
@@ -1126,7 +1132,7 @@ def init():
         render_weapon(current_weapon_state, frames)
         
         if damage_frames > 0:
-            display.fill((10 * damage_frames ,0,0), special_flags=pygame.BLEND_ADD)
+            display.fill((10 * damage_frames,0,0), special_flags=pygame.BLEND_ADD)
             damage_frames -= 1
 
         render_hud(frames)
