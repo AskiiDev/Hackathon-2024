@@ -223,6 +223,9 @@ goblin_images = {
     7: load_image(pygame.image.load("imgs/enemies/goblin/A8.png").convert_alpha(), False)
 }
 
+gore_pile = load_image(pygame.image.load("imgs/enemies/gorepile.png").convert_alpha(), False)
+
+fireball_proj = load_image(pygame.image.load("imgs/attacks/fireball/fireball_proj.png"), False)
 
 def distance_fog(distance, scaled_texture):
     dark_surface = pygame.Surface(scaled_texture.get_size())
@@ -574,7 +577,7 @@ class Sprite:
     global anim_frames
     global player_health
 
-    def __init__(self, coords, texture, res, width, health=1, solid=True, s_type='default'):
+    def __init__(self, coords, texture, res, width, health=1, invulnerable=False, solid=True, s_type='default', speed=0, dir=(0,0)):
         self.coords = coords
         self.texture = texture
         self.res = res
@@ -582,39 +585,99 @@ class Sprite:
         self.health = health
         self.solid = solid
         self.s_type = s_type
+        self.mark_for_death = 0
+        self.speed  = speed
+        self.dir = dir
+        self.invulnerable = invulnerable
 
     def handle_collision(self, sprite):
         pass
+
+    def get_hit(self):
+        if self.invulnerable:
+            return
+        if not self.mark_for_death:
+            self.died = True
+            self.mark_for_death = 20
+        # if self.s_type == "ghost":
+        #     self.texture = ghost_images["falling"]
+        # if self.s_type == "goblin":
+        #     self.texture = goblin_images["falling"]
 
     def hit_player(self):
         pass
 
     def simulate(self):
-        if self.s_type == "ghost":
-            self.texture = ghost_images[anim_frames % 3]
+        if self.mark_for_death == 1:
+            sprites.append(Sprite((self.coords), gore_pile, (256, 256), 0.3, s_type = 'gore pile'))
+            sprites.remove(self)
 
-            player_x, player_y = player_coords['x'], player_coords['y']
-            ghost_x, ghost_y = self.coords
+        elif self.mark_for_death > 1:
+            self.mark_for_death -= 1
 
-                # Calculate the direction vector from the ghost to the player
-            direction_x = player_x - ghost_x
-            direction_y = player_y - ghost_y
+        else:        
+            if self.s_type == "proj":
+                self.coords = (self.coords[0] +  self.dir[0] * self.speed,  self.coords[1] + self.dir[1] * self.speed)
 
-                # Normalize the direction vector to get a unit vector
-            distance = math.sqrt(direction_x ** 2 + direction_y ** 2)
-            if distance != 0:
-                direction_x /= distance
-                direction_y /= distance
-
-                # Set the speed at which the ghost moves towards the player
-            ghost_speed = 0.02  # Adjust this value for desired speed
-
-                # Update the ghost's position to move along the direction vector
-            ghost_x += direction_x * ghost_speed
-            ghost_y += direction_y * ghost_speed
+                if MAP[int(self.coords[0] + 0.5)][int(self.coords[1] + 0.5)] in TEMP_WALL:
+                    print("yayy")
+                    sprites.remove(self)
 
 
-            self.coords = (ghost_x, ghost_y)
+            if self.s_type == "ghost":
+                self.texture = ghost_images[anim_frames % 3]
+
+                player_x, player_y = player_coords['x'], player_coords['y']
+                ghost_x, ghost_y = self.coords
+
+                    # Calculate the direction vector from the ghost to the player
+                direction_x = player_x - ghost_x
+                direction_y = player_y - ghost_y
+
+                    # Normalize the direction vector to get a unit vector
+                distance = math.sqrt(direction_x ** 2 + direction_y ** 2)
+                if distance != 0:
+                    direction_x /= distance
+                    direction_y /= distance
+
+                    # Set the speed at which the ghost moves towards the player
+                ghost_speed = 0.02  # Adjust this value for desired speed
+
+                    # Update the ghost's position to move along the direction vector
+                ghost_x += direction_x * ghost_speed
+                ghost_y += direction_y * ghost_speed
+
+
+                self.coords = (ghost_x, ghost_y)
+
+            if self.s_type == "goblin":
+                player_x, player_y = player_coords['x'], player_coords['y']
+                goblin_x, goblin_y = self.coords
+
+                # Calculate the direction vector and distance from the goblin to the player
+                direction_x = player_x - goblin_x
+                direction_y = player_y - goblin_y
+                distance = math.hypot(direction_x, direction_y)
+
+                if distance > 0:
+                    direction_x /= distance
+                    direction_y /= distance
+
+                goblin_speed = 0.03
+
+                if distance < 3 or distance > 4:
+                    move_factor = -goblin_speed if distance < 3 else goblin_speed
+
+                    # Calculate the tentative new position
+                    new_x = goblin_x + direction_x * move_factor
+                    new_y = goblin_y + direction_y * move_factor
+
+                    # Check for collisions and update position if no collision
+                    if not (MAP[int(new_x + 0.5 - self.width)][int(new_y + 0.5 - self.width)] in TEMP_WALL or
+                            MAP[int(new_x + 0.5 + self.width)][int(new_y + 0.5 + self.width)] in TEMP_WALL):
+                        goblin_x, goblin_y = new_x, new_y
+
+                    self.coords = (goblin_x, goblin_y)
 
 
 
@@ -691,6 +754,10 @@ def load_level():
     goblin_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), goblin_images[0], (256,256), 0.5, health=5, solid=True, s_type="goblin")
     sprites.append(goblin_test)
 
+    # fireball_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), fireball_proj, (256,256), 0.1, dir=(player_rotation['x'], player_rotation['y']), speed=1, solid=True, s_type="proj")
+    # fireball_test = Sprite((start_pos[0] - 1, start_pos[1] - 1), fireball_proj, (256,256), 0.1, speed=0.01, dir=(player_rotation['x'],player_rotation['y']), s_type="proj")
+    # sprites.append(fireball_test)
+
     # check_sprite_collision(gobbo, gobbo2)
 
     last_pos = start_pos
@@ -755,6 +822,13 @@ def init():
                         attack = False
                         lower_hand = True
                         can_attack = False
+
+                        if held_spell == "fireball":
+                            # sprites.append(Sprite(player_coords, fireball_proj, (256,256), 0.1, dir=(player_rotation['x'], player_rotation['y']), speed=1, s_type="proj"))
+                            print("hi")
+                            print(player_rotation)
+                            sprites.append(Sprite((player_coords['x'] - 0.5 + (0.5 * player_rotation['x']), player_coords['y'] - 0.5 + (0.5 * player_rotation['y'])), fireball_proj, (256,256), 0.1, solid=False, speed=0.1, dir=(player_rotation['x'],player_rotation['y']), s_type="proj"))
+                            # pass
                     else:
                         attack = False
                         current_anim_frame = 0
