@@ -1035,8 +1035,9 @@ def init():
     lower_hand = False
     raise_hand = False
     attack = False
-    
-    held_spell = "fireball"
+
+    new_spell = "punch"
+    held_spell = "punch"
 
     total_score = 0
     level = 1
