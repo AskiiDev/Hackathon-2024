@@ -278,7 +278,9 @@ ogre_anim += [ogre_images[0]] * 3
 gore_pile = load_image(pygame.image.load("imgs/enemies/gorepile.png").convert_alpha(), False)
 
 fireball_proj = load_image(pygame.image.load("imgs/attacks/fireball/fireball_proj.png"), False)
-barrel_img = load_image(pygame.image.load("imgs/barrel.png"), False)
+
+barrel_img = load_image(pygame.image.load("imgs/props/barrel.png"), False)
+barrel_destroyed_img = load_image(pygame.image.load("imgs/props/barrel_destroyed.png"), False)
 
 
 def distance_fog(distance, scaled_texture):
@@ -430,6 +432,8 @@ def ray_cast_better():
         transform_x = inv_det * (player_rotation['y'] * sprite_x - player_rotation['x'] * sprite_y)
         transform_y = inv_det * (-camera_plane['y'] * sprite_x + camera_plane['x'] * sprite_y)
 
+        if transform_y == 0:
+            transform_y = 0.00000001
         sprite_surface_x = int((w / 2) * (1 + transform_x / transform_y))
 
         sprite_height = abs(int(h / transform_y))
@@ -659,6 +663,11 @@ class Sprite:
             #print("test")
 
     def get_hit(self):
+        if self.s_type == "barrel":
+            self.texture = barrel_destroyed_img
+            self.solid = False
+            # sprites.add()
+            return
         if self.invulnerable:
             return
         if not self.mark_for_death:
@@ -796,7 +805,9 @@ class Sprite:
                                 direction_x /= distance
                                 direction_y /= distance
 
-                            projectile = (Sprite((self.coords[0] - 0.5 + (0.5 * direction_x), self.coords[1] - 0.5 + (0.5 * direction_y)), fireball_proj, (256,256), 0.1, solid=False, invulnerable=True, speed=0.1, dir=(direction_x, direction_y), s_type="proj"))
+                            projectile = (Sprite((self.coords[0] - 0.5 + (0.5 * direction_x), self.coords[1] - 0.5 + (0.5 * direction_y)), 
+                                                 fireball_proj, (256,256), 0.1, solid=False, invulnerable=True, 
+                                                 speed=0.1, dir=(direction_x, direction_y), s_type="proj"))
                             sprites.append(projectile)
                         
                         if self.frame >= 8:
@@ -943,7 +954,7 @@ def load_level():
     
     gen_barrels()
     barrels = get_barrels()
-    print(barrels)
+    # print(barrels)
 
 
     # pygame.time.wait(1000)
@@ -951,8 +962,8 @@ def load_level():
 
     sprites = []
 
-    barrel_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), barrel_img, (256,256), 0.5, s_type="barrel")
-    sprites.append(barrel_test)
+    # barrel_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), barrel_img, (256,256), 0.5, s_type="barrel")
+    # sprites.append(barrel_test)
 
     # ghost_test = Sprite((start_pos[0] + 1, start_pos[1] + 1), ghost_images[1], (256,256), 0.5, health=5, solid=True, s_type="ghost")
     # sprites.append(ghost_test)
@@ -1020,10 +1031,10 @@ def init():
                         lower_hand = True
                         can_attack = False
 
-                        if held_spell == "fireball":
-                            # sprites.append(Sprite(player_coords, fireball_proj, (256,256), 0.1, dir=(player_rotation['x'], player_rotation['y']), speed=1, s_type="proj"))
-                            
-                            sprites.append(Sprite((player_coords['x'] - 0.5 + (0.5 * player_rotation['x']), player_coords['y'] - 0.5 + (0.5 * player_rotation['y'])), fireball_proj, (256,256), 0.1, solid=False, invulnerable=True, speed=0.1, dir=(player_rotation['x'],player_rotation['y']), s_type="proj"))
+                        if held_spell == "fireball":                            
+                            sprites.append(Sprite((player_coords['x'] - 0.5 + (0.5 * player_rotation['x']), player_coords['y'] - 0.5 + (0.5 * player_rotation['y'])), 
+                                                  fireball_proj, (256,256), 0.1, solid=False, invulnerable=True, 
+                                                  speed=0.1, dir=(player_rotation['x'],player_rotation['y']), s_type="proj"))
                             # pass
 
                     else:
@@ -1053,18 +1064,14 @@ def init():
                 can_attack = True
                 current_anim_frame = 0
 
-        print((player_coords['x'], player_coords['y']))        
+      
 
-        barrel_gen_range = 15
-        array_np = np.array(barrels)
-        squared_distances = np.sum((array_np - (player_coords['x'], player_coords['y'])) ** 2, axis=1)
-        within_distance_indices = np.where(squared_distances <= barrel_gen_range**2)[0]
+        barrel_gen_range = 10
         
-        within_distance = array_np[within_distance_indices]
-        remaining_array = np.delete(array_np, within_distance_indices, axis=0)
-        barrels = within_distance.tolist()
-        for i in remaining_array.tolist():
-            sprites.append(Sprite(i, barrel_img, (256,256), 0.3, s_type="barrel"))
+        for i in barrels:
+            if math.hypot(player_coords['x'] - i[0], player_coords['y'] - i[1]) < barrel_gen_range :
+                sprites.append(Sprite(i, barrel_img, (256,256), 0.3, s_type="barrel"))
+                barrels.remove(i)
         
 
         input_handler(delta_time)

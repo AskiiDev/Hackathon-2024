@@ -4,13 +4,13 @@ import numpy as np
 
 import pygame
 
-WIDTH = 6
-HEIGHT = 6
+WIDTH = 200
+HEIGHT = 200
 
-ROOMS = 2
+ROOMS = 200
 
-ROOM_MIN = 5
-ROOM_MAX = 5
+ROOM_MIN = 3
+ROOM_MAX = 7
 
 TRANSFORMS = [(-1, -1), (0, -1), (1, -1),
               (-1, 0), (1, 0),
@@ -199,9 +199,26 @@ def gen_barrels():
     barrels = []
 
     for i in stationary:
-        new_barrel = (random.randint(i['coords']['x'] + 1, i['coords']['x'] + i['size']['x'] - 1), random.randint(i['coords']['y'] + 1, i['coords']['y'] + i['size']['y'] - 1))
+        # Coordinates for the left and right walls
+        left_wall_x = i['coords']['x']
+        right_wall_x = i['coords']['x'] + i['size']['x'] - 1
+
+        # Coordinates for the top and bottom walls
+        top_wall_y = i['coords']['y']
+        bottom_wall_y = i['coords']['y'] + i['size']['y'] - 1
+
+        # Determine if the barrel should be placed horizontally or vertically
+        if random.choice([True, False]):  # Place on left or right wall
+            barrel_x = random.choice([left_wall_x, right_wall_x])
+            barrel_y = random.randint(top_wall_y + 1, bottom_wall_y - 1)
+        else:  # Place on top or bottom wall
+            barrel_x = random.randint(left_wall_x + 1, right_wall_x - 1)
+            barrel_y = random.choice([top_wall_y, bottom_wall_y])
+
+        new_barrel = (barrel_x, barrel_y)
+
         if new_barrel not in barrels:
-            barrels.append((random.randint(i['coords']['x'] + 1, i['coords']['x'] + i['size']['x'] - 1), random.randint(i['coords']['y'] + 1, i['coords']['y'] + i['size']['y'] - 1)))
+            barrels.append(new_barrel)
     
     return barrels
 
