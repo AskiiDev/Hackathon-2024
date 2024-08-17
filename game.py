@@ -669,7 +669,7 @@ class Sprite:
             #print("test")
 
     def get_hit(self):
-        if self.s_type == "barrel":
+        if self.s_type == "barrel" and not self.texture == barrel_destroyed_img :
             self.texture = barrel_destroyed_img
             self.solid = False
             sprites.append(Sprite(self.coords, fireball_powerup, (256,256), 0.1, s_type="fireball_pu", invulnerable=True))
@@ -691,8 +691,9 @@ class Sprite:
             sprites.remove(self)
 
         if self.s_type == "fireball_pu":
-            sprites.remove(self)
             held_spell = "fireball"
+            print("he")
+            sprites.remove(self)
         
 
     def simulate(self):
