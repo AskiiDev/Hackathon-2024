@@ -23,6 +23,10 @@ TEXTURE_HEIGHT = 256
 running = True
 
 pygame.init()
+pygame.font.init()
+
+font = pygame.font.Font("almendra/Almendra-Regular.ttf", 50)
+
 clock = pygame.time.Clock()
 display = pygame.display.set_mode((WIDTH, HEIGHT))
 
@@ -73,11 +77,17 @@ def try_move(vx, vy):
     if MAP[int(player_coords['x'])][int(player_coords['y'])] in TEMP_WALL or \
        check_player_sprite_collision(player_coords['x'], player_coords['y']):
         player_coords['x'] -= dx
+        if MAP[int(player_coords['x'])][int(player_coords['y'])] == 4:
+            next_level()
+            return
 
     player_coords['y'] += dy
     if MAP[int(player_coords['x'])][int(player_coords['y'])] in TEMP_WALL or \
        check_player_sprite_collision(player_coords['x'], player_coords['y']):
         player_coords['y'] -= dy
+        if MAP[int(player_coords['x'])][int(player_coords['y'])] == 4:
+            next_level()
+            return
 
 
 def try_move_forward(delta, fv):
@@ -271,7 +281,7 @@ def ray_cast_better():
         #     sprite1_dist_sq = (sprite1.coords[0] - player_coords['x']) ** 2 + (sprite1.coords[1] - player_coords['y']) ** 2
         #     sprite2_dist_sq = (sprite2.coords[0] - player_coords['x']) ** 2 + (sprite2.coords[1] - player_coords['y']) ** 2
 
-        #     # Direct comparison of squared distances
+        #     # Direct comparison of squared distances2
         #     if sprite1_dist_sq > sprite2_dist_sq:
         #         return 1
         #     elif sprite1_dist_sq == sprite2_dist_sq:
@@ -379,6 +389,9 @@ def render_hud(delta):
     y_pos = (y_pos // quantization_step) * quantization_step
     display.blit(hud, (0, 0))
     display.blit(arrow, (0, y_pos))
+
+    #timer = font.render("Hello World!", True, (255, 255, 255))
+    #display.blit(timer, (40, 250))
 
 
 def render_weapon(delta):
@@ -565,7 +578,7 @@ def init():
     global running
 
     frames = 0
-    
+
     load_level()
 
     while running:
