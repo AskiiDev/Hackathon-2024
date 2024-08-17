@@ -522,8 +522,8 @@ def init():
 
     background = None
     textures = {2: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
-                3: load_image(pygame.image.load("imgs/gate_closed.png").convert(), False), 
-                4: load_image(pygame.image.load("imgs/gate_open.png").convert(), False)}
+                3: load_image(pygame.image.load("imgs/closed_door.png").convert(), False),
+                4: load_image(pygame.image.load("imgs/opened_door.png").convert(), False)}
     
     # sprite_key = {4: Sprite((0,0), ())}
 
