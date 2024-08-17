@@ -510,7 +510,9 @@ class Sprite:
     def handle_collision(self, sprite):
         pass
 
-def init():
+
+
+def load_level():
     global running
     global player_coords
     global player_rotation
@@ -522,8 +524,6 @@ def init():
     global textures
     global goal_coords
     global sprites
-
-    frames = 0
 
     background = None
     textures = {0: load_image(pygame.image.load("imgs/wall.png").convert(), False), 
@@ -553,21 +553,20 @@ def init():
     camera_plane = {'x': 0, 'y': 0.66}
 
     sprites = []
-    # end_trigger = Sprite(goal_coords, load_image(pygame.image.load("imgs/barrel.png").convert(), False, colorKey=(0, 0, 0)), (64, 64), 0.6, s_type='goal', solid=False)
-    # sprites.append(end_trigger)
-
-    gobbo = Sprite((start_pos[0] - 1, start_pos[1] + 0),
-                   load_image(pygame.image.load("imgs/barrel.png").convert(), False, colorKey=(0, 0, 0)), (64, 64), 0.4)
-    gobbo2 = Sprite((start_pos[0] - 1.6, start_pos[1] + 0),
-                   load_image(pygame.image.load("imgs/barrel.png").convert(), False, colorKey=(0, 0, 0)), (64, 64), 0.5)
-    sprites.append(gobbo)
-    print(gen_map_grid(get_stationary()))
 
     # sprites.append(gobbo2)
 
     # check_sprite_collision(gobbo, gobbo2)
 
     last_pos = start_pos
+
+
+def init():
+    global running
+
+    frames = 0
+    
+    load_level()
 
     while running:
         frames += 1
@@ -583,6 +582,8 @@ def init():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     quit()
+                if event.key == pygame.K_TAB:
+                    load_level()
             if event.type == pygame.QUIT:
                 running = False
 

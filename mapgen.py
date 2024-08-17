@@ -4,13 +4,13 @@ import numpy as np
 
 import pygame
 
-WIDTH = 20
-HEIGHT = 20
+WIDTH = 200
+HEIGHT = 200
 
-ROOMS = 10
+ROOMS = 100
 
 ROOM_MIN = 3
-ROOM_MAX = 7
+ROOM_MAX = 6
 
 TRANSFORMS = [(-1, -1), (0, -1), (1, -1),
               (-1, 0), (1, 0),
@@ -143,52 +143,52 @@ def gen_map_grid(rooms):
     # Update the grid using the mask
     grid[mask] = 2
 
-    def is_inside_corner(position):
-        x, y = position
-        # Check for boundaries to avoid index errors
-        if x <= 0 or y <= 0 or x >= WIDTH - 1 or y >= HEIGHT - 1:
-            return False
+
+    def count_adjacent_ones(grid, wall_positions):
+        num_rows, num_cols = grid.shape
+        adjacent_counts = np.zeros(len(wall_positions), dtype=int)
         
-        # Check adjacent cells
-        adjacent_walls = [
-            grid[x-1, y], grid[x+1, y],  # Left, Right
-            grid[x, y-1], grid[x, y+1]   # Up, Down
-        ]
+        # Convert wall_positions to a list of row and column indices
+        wall_rows, wall_cols = wall_positions[:, 0], wall_positions[:, 1]
         
-        # Inside corner check: it is an inside corner if it has at least two walls adjacent in perpendicular directions
-        return adjacent_walls.count(2) >= 2
+        for idx, (row, col) in enumerate(zip(wall_rows, wall_cols)):
+            # Define the slice boundaries
+            row_min, row_max = max(row - 1, 0), min(row + 2, num_rows)
+            col_min, col_max = max(col - 1, 0), min(col + 2, num_cols)
+            
+            # Extract the subgrid of adjacent cells
+            subgrid = grid[row_min:row_max, col_min:col_max]
+            
+            # Count adjacent '1's excluding the wall tile itself
+            adjacent_counts[idx] = np.sum(subgrid == 1) - (grid[row, col] == 1)
+        
+        return adjacent_counts
 
     
     wall_positions = np.argwhere(grid == 2)
-    
-    # Ensure valid_wall_positions is not empty
-    valid_wall_positions = [tuple(pos) for pos in wall_positions if not is_inside_corner(tuple(pos))]
-    if not valid_wall_positions:
-        print("No valid wall positions found.")
-        # return grid
+    adjacent_counts = count_adjacent_ones(grid, wall_positions)
+    filtered_positions = wall_positions[(adjacent_counts >= 2) & (adjacent_counts <= 3)]
 
-    # Start room midpoint logic
     start_room_mid = get_start_pos()
-    distances = np.sqrt([(pos[0] - start_room_mid[0]) ** 2 + (pos[1] - start_room_mid[1]) ** 2 for pos in wall_positions])
+    distances = np.sqrt([(pos[0] - start_room_mid[0]) ** 2 + (pos[1] - start_room_mid[1]) ** 2 for pos in filtered_positions])
     
     if len(distances) == 0:
         print("No distances calculated for start room.")
-        # return grid
 
     nearest_wall_idx = np.argmin(distances)
-    nearest_wall_position = wall_positions[nearest_wall_idx]
+    nearest_wall_position = filtered_positions[nearest_wall_idx]
     grid[nearest_wall_position[0], nearest_wall_position[1]] = 3
 
     # End room midpoint logic
     end_room_mid = get_end_pos()
-    distances = np.sqrt([(pos[0] - end_room_mid[0]) ** 2 + (pos[1] - end_room_mid[1]) ** 2 for pos in wall_positions])
+    distances = np.sqrt([(pos[0] - end_room_mid[0]) ** 2 + (pos[1] - end_room_mid[1]) ** 2 for pos in filtered_positions])
 
     if len(distances) == 0:
         print("No distances calculated for end room.")
         return grid
 
     nearest_wall_idx = np.argmin(distances)
-    nearest_wall_position = wall_positions[nearest_wall_idx]
+    nearest_wall_position = filtered_positions[nearest_wall_idx]
     grid[nearest_wall_position[0], nearest_wall_position[1]] = 4
 
     return grid
