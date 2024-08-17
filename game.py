@@ -6,6 +6,7 @@ import time
 TEMP_WALL = [0, 2, 3, 4]
 
 hands_y = 0
+sprites = []
 
 HANDS_LOWER_LIMIT = 600
 elapsed_time = 0
@@ -595,6 +596,7 @@ def check_sprite_collision(sprite1, sprite2):
     return False
 
 class Sprite:
+    global sprites
     global anim_frames
     global player_health
 
@@ -640,7 +642,7 @@ class Sprite:
     def simulate(self):
         global sprites
         if self.mark_for_death == 1:
-            sprites.append(Sprite((self.coords), gore_pile, (256, 256), 0.3, s_type = 'gore pile'))
+            sprites.append(Sprite((self.coords), gore_pile, (256, 256), 0.05,  invulnerable=True, s_type = 'gore pile'))
             self.texture = gore_pile
             sprites.remove(self)
 
@@ -901,12 +903,15 @@ def init():
                             
                             sprites.append(Sprite((player_coords['x'] - 0.5 + (0.5 * player_rotation['x']), player_coords['y'] - 0.5 + (0.5 * player_rotation['y'])), fireball_proj, (256,256), 0.1, solid=False, invulnerable=True, speed=0.1, dir=(player_rotation['x'],player_rotation['y']), s_type="proj"))
                             # pass
+
                     else:
                         attack = False
                         current_anim_frame = 0
                 else:
                     anim_counter = frames
                     current_weapon_state = ATTACKS[held_spell][current_anim_frame][0]
+                    if held_spell == "punch" and current_anim_frame == 1:
+                        fire(2)
         elif can_attack:
             current_weapon_state = ATTACKS[held_spell][0][0]
 
@@ -942,7 +947,6 @@ def init():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     if can_attack:
-                        fire(2)
                         attack = True
                 if event.key == pygame.K_ESCAPE:
                     quit()
