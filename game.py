@@ -399,7 +399,10 @@ def ray_cast_better():
                 if stripe >= len(z_buffer) or stripe < 0:
                     continue
                 if 0 < transform_y < z_buffer[stripe] and stripe < w:
-                    A = min(sprite_height / 400, 1)
+                    if sprite.s_type != "proj":
+                        A = min(sprite_height / 400, 1)
+                    else:
+                        A = 1
 
                     scaled_texture = distance_fog(A, pygame.transform.scale(sprite.texture[tex_x], (1, sprite_height)))
                     display.blit(scaled_texture,
