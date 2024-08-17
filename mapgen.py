@@ -27,6 +27,8 @@ stationary = []
 discovered = []
 barrels = []
 
+
+
 def get_midpoint(room):
     return (room["coords"]['x'] + room["size"]["x"] // 2, room["coords"]['y'] + room["size"]["y"] // 2)
 
@@ -221,6 +223,8 @@ def gen_barrels():
             barrels.append(new_barrel)
     
     return barrels
+
+
 
 def get_barrels():
     global barrels
