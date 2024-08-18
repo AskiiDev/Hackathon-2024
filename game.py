@@ -63,7 +63,7 @@ FONTS = {
 
 
 # STAGE_TRACKS = ["music/strange_people.mp3", "music/wave_of_fiends.mp3", "music/goblin_guts.mp3", "music/guitar_wizard.mp3"]
-STAGE_TRACKS = ["music/wave_of_fiends.wav", "music/goblin_guts.mp3"]
+STAGE_TRACKS = ["music/wave_of_fiends.wav", "music/goblin_guts.mp3", "music/strange_people.mp3"]
 random.shuffle(STAGE_TRACKS)
 # print(STAGE_TRACKS)
 
@@ -71,7 +71,8 @@ SFX = {
     'shut': pygame.mixer.Sound("sfx/door_shut.wav"),
     'open': pygame.mixer.Sound("sfx/door_open.wav"),
     'barrel': pygame.mixer.Sound("sfx/break_barrel.wav"),
-    'squelch': pygame.mixer.Sound("sfx/squelch.wav")
+    'squelch': pygame.mixer.Sound("sfx/squelch.wav"),
+    'lightning': pygame.mixer.Sound("sfx/lightning.wav")
 }
 
 clock = pygame.time.Clock()
@@ -1313,6 +1314,8 @@ def init():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     if can_attack:
+                        if held_spell == "lightning":
+                            pygame.mixer.Sound.play(SFX["lighting"])
                         attack = True
                 if event.key == pygame.K_ESCAPE:
                     quit()
