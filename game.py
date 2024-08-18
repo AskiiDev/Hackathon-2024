@@ -8,6 +8,14 @@ STATE = "MENU"
 
 TEMP_WALL = [0, 2, 3, 4]
 
+
+# STAGE_TRACKS = ["music/strange_people.mp3", "music/wave_of_fiends.mp3", "music/goblin_guts.mp3", "music/guitar_wizard.mp3"]
+STAGE_TRACKS = ["music/wave_of_fiends.mp3", "music/goblin_guts.mp3"]
+
+door_shut = pygame.mixer.Sound("sfx/door_shut.mp3")
+door = pygame.mixer.Sound("sfx/door.mp3")
+
+
 hands_y = 0
 lower_hand = False
 new_spell = "punch"
@@ -830,7 +838,7 @@ class Sprite:
                         check_sprite_collision(self, i)
 
             if self.s_type == "ghost":
-                self.texture = ghost_images[anim_frames % 3]
+                self.texture = ghost_images[int(anim_frames / 10) % 3]
 
                 player_x, player_y = player_coords['x'] - 0.5, player_coords['y'] - 0.5
                 ghost_x, ghost_y = self.coords
