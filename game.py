@@ -516,6 +516,7 @@ def render_hud(delta):
     global player_health
     global goal_coords
     global elapsed_time
+    global souls
 
     quantization_step = 1
 
@@ -1192,7 +1193,7 @@ def init():
                         fire(3)
                     if held_spell == "lightning" and current_anim_frame == 3:
                         for i in sprites:
-                            if math.hypot(player_coords['x'] - i.coords[0], player_coords['y'] - i.coords[0]) < 2:
+                            if math.hypot(player_coords['x'] - i.coords[0], player_coords['y'] - i.coords[1]) < 2:
                                 i.get_hit()
             
         elif can_attack:
@@ -1244,7 +1245,7 @@ def init():
         render_weapon(current_weapon_state, frames)
         
         if damage_frames > 0:
-            display.fill((10 * damage_frames,0,0), special_flags=pygame.BLEND_ADD)
+            display.fill((min(10 * damage_frames, 255),0,0), special_flags=pygame.BLEND_ADD)
             damage_frames -= 1
 
         render_hud(frames)

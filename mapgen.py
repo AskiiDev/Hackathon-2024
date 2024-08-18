@@ -225,7 +225,6 @@ def gen_barrels():
     return barrels
 
 
-
 def get_barrels():
     global barrels
     return barrels
