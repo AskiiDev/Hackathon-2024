@@ -43,6 +43,8 @@ RAY_STEP_SIZE = 0.1
 TEXTURE_WIDTH = 256
 TEXTURE_HEIGHT = 256
 
+souls = 0
+
 running = True
 
 pygame.init()
@@ -711,6 +713,7 @@ class Sprite:
     global player_health
     global lower_hand
     global new_spell
+    global souls
 
     def __init__(self, coords, texture, res, width, health=1, invulnerable=False, solid=True, s_type='default', speed=0, dir=(0,0)):
         self.coords = coords
@@ -776,10 +779,13 @@ class Sprite:
     def simulate(self):
         global player_health
         global sprites
+        global souls 
+
         if self.mark_for_death == 1:
             sprites.append(Sprite((self.coords), gore_pile, (256, 256), 0.1,  invulnerable=True, s_type = 'gore pile'))
             self.texture = gore_pile
             sprites.remove(self)
+            souls += 1
 
         elif self.mark_for_death > 1:
             if self.mark_for_death <= 10:
@@ -1093,6 +1099,7 @@ def init():
     global agg
     global new_spell
     global damage_frames
+    global souls
     
 
     display.fill((0,0,0))
@@ -1176,7 +1183,10 @@ def init():
                     if held_spell == "punch" and current_anim_frame == 1:
                         fire(2)
                     if held_spell == "lightning" and current_anim_frame == 3:
-                        pass
+                        for i in sprites:
+                            if math.hypot(player_coords['x'] - i.coords[0], player_coords['y'] - i.coords[0]) < 2:
+                                i.get_hit()
+            
         elif can_attack:
             current_weapon_state = ATTACKS[held_spell][0][0]
 
