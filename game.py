@@ -8,14 +8,6 @@ STATE = "MENU"
 
 TEMP_WALL = [0, 2, 3, 4]
 
-
-# STAGE_TRACKS = ["music/strange_people.mp3", "music/wave_of_fiends.mp3", "music/goblin_guts.mp3", "music/guitar_wizard.mp3"]
-STAGE_TRACKS = ["music/wave_of_fiends.mp3", "music/goblin_guts.mp3"]
-
-door_shut = pygame.mixer.Sound("sfx/door_shut.mp3")
-door = pygame.mixer.Sound("sfx/door.mp3")
-
-
 hands_y = 0
 lower_hand = False
 new_spell = "punch"
@@ -59,6 +51,7 @@ running = True
 
 pygame.init()
 pygame.font.init()
+pygame.mixer.init()
 
 FONTS = {
     'floor': pygame.font.Font("almendra/Almendra-Regular.ttf", 40),
@@ -67,8 +60,15 @@ FONTS = {
     'health': pygame.font.Font("almendra/Almendra-Regular.ttf", 40)
 }
 
-pygame.mixer.music.load("People Are Strange.mp3")
 
+STAGE_TRACKS = ["music/strange_people.mp3", "music/wave_of_fiends.mp3", "music/goblin_guts.mp3", "music/guitar_wizard.mp3"]
+# STAGE_TRACKS = ["music/wave_of_fiends.mp3", "music/goblin_guts.mp3"]
+
+SFX = {
+    'shut': pygame.mixer.Sound("sfx/door_shut.mp3"),
+    'open': pygame.mixer.Sound("sfx/door_open.mp3"),
+    'barrel': pygame.mixer.Sound("sfx/break_barrel.wav")
+}
 
 clock = pygame.time.Clock()
 display = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -759,6 +759,7 @@ class Sprite:
             if self.texture == barrel_destroyed_img:
                 return
             self.texture = barrel_destroyed_img
+            pygame.mixer.Sound.play(SFX['barrel'])
             self.solid = False
             self.width = 0
             pu = random.randint(0,1)
