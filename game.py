@@ -1151,14 +1151,29 @@ def load_level():
         MAP = gen_boss_map()
         MAP_WIDTH = len(MAP)
         MAP_HEIGHT = len(MAP[0])
-        start_pos = (1, 6)
+        start_pos = (10, 6)
 
         player_coords = {'x': start_pos[0] + 0.5, 'y': start_pos[1] + 0.5}
-        goal_coords = (10, 6)
+        goal_coords = (1, 6)
         player_rotation = {'x': -1, 'y': 0}
         camera_plane = {'x': 0, 'y': 0.66}
 
     # pygame.time.wait(1000)
+    render_hud()
+    old_display = display.copy()
+    display.fill((0,0,0))
+    render_hud(0)
+    pygame.display.flip()
+    pygame.time.wait(125)    
+    display.blit(old_display, (0,0))
+    render_hud(0)
+    pygame.display.flip()
+    pygame.time.wait(125)
+    display.fill((0,0,0))
+    render_hud(0)
+    pygame.display.flip()
+    pygame.time.wait(125)
+    
     level_start_time = time.time()
     pygame.mixer.music.play(-1)
 
