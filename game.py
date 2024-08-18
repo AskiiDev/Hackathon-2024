@@ -311,6 +311,7 @@ barrel_img = load_image(pygame.image.load("imgs/props/barrel.png"), False)
 barrel_destroyed_img = load_image(pygame.image.load("imgs/props/barrel_destroyed.png"), False)
 
 fireball_powerup = load_image(pygame.image.load("imgs/props/fireball_powerup.png"), False)
+lightning_powerup = load_image(pygame.image.load("imgs/props/lightning_powerup.png"), False)
 
 
 def distance_fog(distance, scaled_texture):
@@ -661,8 +662,6 @@ def spawn_monster():
     location = get_random_location_near_player(10, 15)
     option = random.randint(0, 2)
 
-    option = 0
-
     if option == 0:
         sprites.append(Sprite(location, ghost_images[0], (256, 256), 0.3, s_type="ghost", solid=False))
     if option == 1:
@@ -743,7 +742,11 @@ class Sprite:
             self.texture = barrel_destroyed_img
             self.solid = False
             self.width = 0
-            sprites.append(Sprite(self.coords, fireball_powerup, (256,256), 0.1, s_type="fireball_pu", invulnerable=True))
+            pu = random.randint(0,1)
+            if pu == 0:
+                sprites.append(Sprite(self.coords, fireball_powerup, (256,256), 0.1, s_type="fireball_pu", invulnerable=True))
+            if pu == 1:
+                sprites.append(Sprite(self.coords, lightning_powerup, (256,256), 0.1, s_type="lightning_pu", invulnerable=True))
             return
         if self.invulnerable:
             return
@@ -759,11 +762,16 @@ class Sprite:
         global lower_hand
         global new_spell
 
+        if self.s_type == "lightning_pu":
+            new_spell = "lightning"
+            lower_hand = True
+            sprites.remove(self)
+
         if self.s_type == "fireball_pu":
             new_spell = "fireball"
             lower_hand = True
             sprites.remove(self)
-        
+
 
     def simulate(self):
         global player_health
@@ -818,7 +826,7 @@ class Sprite:
             if self.s_type == "ghost":
                 self.texture = ghost_images[anim_frames % 3]
 
-                player_x, player_y = player_coords['x'] + 0.5, player_coords['y'] + 0.5
+                player_x, player_y = player_coords['x'] - 0.5, player_coords['y'] - 0.5
                 ghost_x, ghost_y = self.coords
 
                     # Calculate the direction vector from the ghost to the player
@@ -841,7 +849,7 @@ class Sprite:
                     self.coords = (ghost_x, ghost_y)
 
                 else:
-                    damage_player(0)
+                    damage_player(1)
 
                 
             if self.s_type == "goblin":
@@ -949,7 +957,7 @@ class Sprite:
 
                     self.coords = (ogre_x, ogre_y)
 
-                    if distance < 0.5:
+                    if distance < 0.6:
                         self.attacking = True
 
                         self.has_damaged = False
@@ -973,7 +981,7 @@ class Sprite:
                             direction_y = player_coords['y'] - self.coords[1]
                             distance = math.hypot(direction_x, direction_y)
 
-                            if distance < 0.5:
+                            if distance < 1:
                                 damage_player(10)
 
         self.prev_anim_frame = anim_frames
@@ -1167,6 +1175,8 @@ def init():
                     current_weapon_state = ATTACKS[held_spell][current_anim_frame][0]
                     if held_spell == "punch" and current_anim_frame == 1:
                         fire(2)
+                    if held_spell == "lightning" and current_anim_frame == 3:
+                        pass
         elif can_attack:
             current_weapon_state = ATTACKS[held_spell][0][0]
 
