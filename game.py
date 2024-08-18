@@ -1310,8 +1310,6 @@ def init():
                         attack = True
                 if event.key == pygame.K_ESCAPE:
                     quit()
-                if event.key == pygame.K_TAB:
-                    next_level()
             if event.type == pygame.QUIT:
                 running = False
 
