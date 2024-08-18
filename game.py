@@ -661,10 +661,10 @@ def spawn_monster():
     location = get_random_location_near_player(10, 15)
     option = random.randint(0, 2)
 
-    option = 1
+    option = 0
 
     if option == 0:
-        sprites.append(Sprite(location, ghost_images[0], (256, 256), 0.3, s_type="ghost"))
+        sprites.append(Sprite(location, ghost_images[0], (256, 256), 0.3, s_type="ghost", solid=False))
     if option == 1:
         sprites.append(Sprite(location, goblin_images[0], (256, 256), 0.3, s_type="goblin"))
     if option == 2:
@@ -759,11 +759,6 @@ class Sprite:
         global lower_hand
         global new_spell
 
-        print(self.s_type)
-        if self.s_type == "proj":
-            damage_player(20)
-            sprites.remove(self)
-
         if self.s_type == "fireball_pu":
             new_spell = "fireball"
             lower_hand = True
@@ -799,11 +794,23 @@ class Sprite:
 
         else:
             if self.s_type == "proj":
-                self.coords = (self.coords[0] +  self.dir[0] * self.speed,  self.coords[1] + self.dir[1] * self.speed)
+                self.coords = (self.coords[0] + self.dir[0] * self.speed,  self.coords[1] + self.dir[1] * self.speed)
 
                 if MAP[int(self.coords[0] + 0.5)][int(self.coords[1] + 0.5)] in TEMP_WALL:
                     sprites.remove(self)
                 
+                player_x, player_y = player_coords['x'] - 0.5, player_coords['y'] - 0.5
+                x, y = self.coords
+
+                direction_x = player_x - x
+                direction_y = player_y - y
+
+                distance = math.sqrt(direction_x ** 2 + direction_y ** 2)
+
+                if distance < 0.3:        
+                    damage_player(20)
+                    sprites.remove(self)
+
                 for i in sprites:
                     if i.s_type != "proj":
                         check_sprite_collision(self, i)
@@ -811,7 +818,7 @@ class Sprite:
             if self.s_type == "ghost":
                 self.texture = ghost_images[anim_frames % 3]
 
-                player_x, player_y = player_coords['x'], player_coords['y']
+                player_x, player_y = player_coords['x'] + 0.5, player_coords['y'] + 0.5
                 ghost_x, ghost_y = self.coords
 
                     # Calculate the direction vector from the ghost to the player
@@ -828,12 +835,15 @@ class Sprite:
                 ghost_speed = 0.02  # Adjust this value for desired speed
 
                     # Update the ghost's position to move along the direction vector
-                ghost_x += direction_x * ghost_speed
-                ghost_y += direction_y * ghost_speed
+                if distance >= 0.35:
+                    ghost_x += direction_x * ghost_speed
+                    ghost_y += direction_y * ghost_speed
+                    self.coords = (ghost_x, ghost_y)
 
+                else:
+                    damage_player(0)
 
-                self.coords = (ghost_x, ghost_y)
-
+                
             if self.s_type == "goblin":
                 if not self.attacking:
                     self.texture = goblin_images[0]
@@ -891,7 +901,7 @@ class Sprite:
                                 direction_x /= distance
                                 direction_y /= distance
 
-                            projectile = (Sprite((self.coords[0] - 0.5 + (0.5 * direction_x), self.coords[1] - 0.5 + (0.5 * direction_y)), 
+                            projectile = (Sprite((self.coords[0] + (0.5 * direction_x), self.coords[1] + (0.5 * direction_y)), 
                                                  fireball_proj, (256,256), 0.1, solid=False, invulnerable=True, 
                                                  speed=0.1, dir=(direction_x, direction_y), s_type="proj"))
                             sprites.append(projectile)
