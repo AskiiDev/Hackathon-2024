@@ -162,7 +162,7 @@ pills_anim = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/pills/p
               11: (pygame.transform.scale(pygame.image.load("imgs/attacks/pills/pill12.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
               12: (pygame.transform.scale(pygame.image.load("imgs/attacks/pills/pill13.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
               13: (pygame.transform.scale(pygame.image.load("imgs/attacks/pills/pill14.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
-              14: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.png").convert_alpha(), (WIDTH, HEIGHT)), 5)}
+              14: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.png").convert_alpha(), (WIDTH, HEIGHT)), 0)}
 
 
 ATTACKS = {
