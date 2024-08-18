@@ -1161,7 +1161,7 @@ def load_level():
         camera_plane = {'x': 0, 'y': 0.66}
 
     # pygame.time.wait(1000)
-    render_hud()
+    render_hud(0)
     old_display = display.copy()
     display.fill((0,0,0))
     render_hud(0)
