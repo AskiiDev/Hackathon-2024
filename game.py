@@ -67,12 +67,16 @@ STAGE_TRACKS = ["music/wave_of_fiends.wav", "music/goblin_guts.mp3", "music/stra
 random.shuffle(STAGE_TRACKS)
 # print(STAGE_TRACKS)
 
+MENU_MUSIC = "music/main_menu.mp3"
+
 SFX = {
     'shut': pygame.mixer.Sound("sfx/door_shut.wav"),
     'open': pygame.mixer.Sound("sfx/door_open.wav"),
     'barrel': pygame.mixer.Sound("sfx/break_barrel.wav"),
     'squelch': pygame.mixer.Sound("sfx/squelch.wav"),
-    'lightning': pygame.mixer.Sound("sfx/lightning.wav")
+    'lightning': pygame.mixer.Sound("sfx/lightning.wav"),
+    'fireball': pygame.mixer.Sound("sfx/fireball.wav"),
+    'punch': pygame.mixer.Sound("sfx/punch.wav")
 }
 
 clock = pygame.time.Clock()
@@ -1173,6 +1177,8 @@ def init():
 
     display.fill((0,0,0))
     text_surface = FONTS['floor'].render("Start game: \n Press space.", False, (255,255,255))
+    pygame.mixer.music.load(MENU_MUSIC)
+    pygame.mixer.music.play(-1)
     display.blit(text_surface, (20,20))
     menu = True
     pygame.display.flip()
@@ -1181,10 +1187,9 @@ def init():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     menu = False
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.unload()
                     break
-        
-    
-
 
     can_attack = True
     lower_hand = False
@@ -1329,9 +1334,8 @@ def init():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     if can_attack:
-                        if held_spell == "lightning":
-                            pygame.mixer.Sound.play(SFX["lighting"])
                         attack = True
+                        pygame.mixer.Sound.play(SFX[held_spell])
                 if event.key == pygame.K_ESCAPE:
                     quit()
             if event.type == pygame.QUIT:
