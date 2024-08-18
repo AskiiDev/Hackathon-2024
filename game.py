@@ -44,6 +44,8 @@ TEXTURE_WIDTH = 256
 TEXTURE_HEIGHT = 256
 
 souls = 0
+pills = 0
+
 
 running = True
 
@@ -509,6 +511,7 @@ def render_hud(delta):
     global goal_coords
     global elapsed_time
     global souls
+    global pills
 
     quantization_step = 1
 
@@ -570,19 +573,23 @@ def render_hud(delta):
     elapsed_time = int(time.time() - level_start_time)
     minutes, seconds = divmod(elapsed_time, 60)
 
-    floor_title = FONTS['floor'].render("FLOOR", True, (255, 255, 255))
+    floor_title = FONTS['floor'].render("SOULS", True, (255, 255, 255))
     timer_title = FONTS['timer'].render("TIMER", True, (255, 255, 255))
     health_title = FONTS['timer'].render("HP", True, (255, 255, 255))
+    pills_title = FONTS['timer'].render("PILLS", True, (255, 255, 255))
     health_counter = FONTS['floor_n'].render(f"{player_health}", True, (200, 200, 200))
-    floor_counter = FONTS['floor_n'].render(f"{level}", True, (200, 200, 200))
+    floor_counter = FONTS['floor_n'].render(f"{souls}", True, (200, 200, 200))
     timer_counter = FONTS['floor_n'].render(f"{minutes}:{seconds:02}", True, (200, 200, 200))
+    pills_counter = FONTS['floor_n'].render(f"{pills}", True, (200, 200, 200))
 
     display.blit(floor_title, (48.5, 475))
     display.blit(timer_title, (195.5, 475))
     display.blit(health_title, (523, 475))
+    display.blit(pills_title, (649, 475))
     display.blit(health_counter, (520, 520))
     display.blit(floor_counter, (98.5, 520))
     display.blit(timer_counter, (220, 520))
+    display.blit(pills_counter, (649, 520))
 
 
 def render_weapon(weapon_state, delta):
@@ -1010,9 +1017,36 @@ def next_level():
     global elapsed_time
     global level
     global MAP
+    global pills
+    global souls
 
     total_score += 1000 - min(max(elapsed_time - 20, 0) * 40, 1000)
-    display.fill(pygame.Color(0,0,0))
+    
+    
+    display.blit(pygame.image.load("imgs/props/Merchant_Screen.png"), (0,0))
+
+    
+    text_surface = FONTS['floor'].render("Press B to buy", False, (255,255,255))
+    text_surface2 = FONTS['floor'].render("Press SPACE to Leave", False, (255,255,255))
+    display.blit(text_surface, (20,20))
+    display.blit(text_surface2, (20,60))
+
+
+    pygame.display.flip()
+    
+
+    temp = True
+    while temp:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_b:
+                    if souls >= 10:
+                        pills += 1
+                        souls -= 10
+                if event.key == pygame.K_SPACE:
+                    temp = False
+                    break
+
     render_hud(0)
     print("Score:")
     print(score)

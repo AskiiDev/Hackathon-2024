@@ -4,8 +4,8 @@ import numpy as np
 
 import pygame
 
-WIDTH = 200
-HEIGHT = 200
+WIDTH = 160
+HEIGHT = 110
 
 ROOMS = 200
 
