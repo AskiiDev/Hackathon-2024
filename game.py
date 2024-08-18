@@ -310,8 +310,8 @@ fireball_proj = load_image(pygame.image.load("imgs/attacks/fireball/fireball_pro
 barrel_img = load_image(pygame.image.load("imgs/props/barrel.png"), False)
 barrel_destroyed_img = load_image(pygame.image.load("imgs/props/barrel_destroyed.png"), False)
 
-fireball_powerup = load_image(pygame.image.load("imgs/props/fireball_powerup.png"), False)
-lightning_powerup = load_image(pygame.image.load("imgs/props/lightning_powerup.png"), False)
+fireball_powerup = load_image(pygame.image.load("imgs/powerups/whiskey.png"), False)
+lightning_powerup = load_image(pygame.image.load("imgs/powerups/car_battery.png"), False)
 
 
 def distance_fog(distance, scaled_texture):
