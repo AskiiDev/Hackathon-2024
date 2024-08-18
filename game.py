@@ -765,9 +765,9 @@ class Sprite:
             self.width = 0
             pu = random.randint(0,1)
             if pu == 0:
-                sprites.append(Sprite(self.coords, fireball_powerup, (256,256), 0.1, s_type="fireball_pu", invulnerable=True))
+                sprites.append(Sprite(self.coords, fireball_powerup, (256,256), 0.3, s_type="fireball_pu", invulnerable=True))
             if pu == 1:
-                sprites.append(Sprite(self.coords, lightning_powerup, (256,256), 0.1, s_type="lightning_pu", invulnerable=True))
+                sprites.append(Sprite(self.coords, lightning_powerup, (256,256), 0.3, s_type="lightning_pu", invulnerable=True))
             return
         if self.invulnerable:
             return
@@ -1051,33 +1051,33 @@ def next_level():
 
     total_score += 1000 - min(max(elapsed_time - 20, 0) * 40, 1000)
     
-    
-    display.blit(pygame.image.load("imgs/props/Merchant_Screen.png"), (0,0))
+    if (level % 5 == 4):
+        display.blit(pygame.image.load("imgs/props/Merchant_Screen.png"), (0,0))
 
-    
-    text_surface = FONTS['floor'].render("Press B to buy 'pills'", False, (255,255,255))
-    text_surface2 = FONTS['floor'].render("Press SPACE to Leave", False, (255,255,255))
-    display.blit(text_surface, (20,20))
-    display.blit(text_surface2, (20,60))
+        
+        text_surface = FONTS['floor'].render("Press B to buy 'pills'", False, (255,255,255))
+        text_surface2 = FONTS['floor'].render("Press SPACE to Leave", False, (255,255,255))
+        display.blit(text_surface, (20,20))
+        display.blit(text_surface2, (20,60))
 
 
-    pygame.display.flip()
-    
+        pygame.display.flip()
+        
 
-    temp = True
-    while temp:
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_b:
-                    if souls >= 10:
-                        pills += 1
-                        souls -= 10
-                if event.key == pygame.K_SPACE:
-                    temp = False
-                    break
+        temp = True
+        while temp:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_b:
+                        if souls >= 10:
+                            pills += 1
+                            souls -= 10
+                    if event.key == pygame.K_SPACE:
+                        temp = False
+                        break
 
-    render_hud(0)
-    pygame.display.flip()
+        render_hud(0)
+        pygame.display.flip()
 
     # pygame.time.wait(1000)
     display.fill(pygame.Color(0,0,0))
@@ -1100,40 +1100,51 @@ def load_level():
     global MAP_WIDTH
     global MAP_HEIGHT
     global background
-    
+    global level
     global goal_coords
     global sprites
     global score
     global player_health
 
     global barrels
+    global souls
 
     player_health = 100
-
+    souls = 0 
     score = 0
     background = None
 
     pygame.event.set_grab(True)
     pygame.mouse.set_visible(False)
 
-    MAP = gen_map_grid(get_stationary())
+    if level % 5 != 0:  
+        MAP = gen_map_grid(get_stationary())
 
+        MAP_WIDTH = len(MAP)
+        MAP_HEIGHT = len(MAP[0])
+        start_pos = get_start_pos()
+        player_coords = {'x': start_pos[0] + 0.5, 'y': start_pos[1] + 0.5}
+        goal_coords = get_real_end_pos()
+        player_rotation = {'x': -1, 'y': 0}
+        camera_plane = {'x': 0, 'y': 0.66}
 
-    MAP_WIDTH = len(MAP)
-    MAP_HEIGHT = len(MAP[0])
-    start_pos = get_start_pos()
-    player_coords = {'x': start_pos[0] + 0.5, 'y': start_pos[1] + 0.5}
-    goal_coords = get_real_end_pos()
-    player_rotation = {'x': -1, 'y': 0}
-    camera_plane = {'x': 0, 'y': 0.66}
+        
+        gen_barrels()
+        barrels = get_barrels()
+        if (start_pos in barrels):
+            barrels.remove(start_pos)
+        # print(barrels)
 
-    
-    gen_barrels()
-    barrels = get_barrels()
-    if (start_pos in barrels):
-        barrels.remove(start_pos)
-    # print(barrels)
+    else: 
+        MAP = gen_boss_map()
+        MAP_WIDTH = len(MAP)
+        MAP_HEIGHT = len(MAP[0])
+        start_pos = (1, 6)
 
+        player_coords = {'x': start_pos[0] + 0.5, 'y': start_pos[1] + 0.5}
+        goal_coords = (10, 6)
+        player_rotation = {'x': -1, 'y': 0}
+        camera_plane = {'x': 0, 'y': 0.66}
 
     # pygame.time.wait(1000)
     level_start_time = time.time()
@@ -1186,7 +1197,7 @@ def init():
     held_spell = "punch"
 
     total_score = 0
-    level = 1
+    # level = 1
 
     player_health = 100
 
@@ -1221,10 +1232,10 @@ def init():
     pygame.display.flip()
     pygame.time.wait(125)
     while running:
-
-        if frames % 300 == 0:
-            for i in range(level):
-                spawn_monster()
+        if level % 5 != 0:
+            if frames % 300 == 0:
+                for i in range(level):
+                    spawn_monster()
 
         frames += 1
         anim_frames = int(frames / 2)
@@ -1323,6 +1334,8 @@ def init():
                         attack = True
                 if event.key == pygame.K_ESCAPE:
                     quit()
+                if event.key == pygame.K_TAB:
+                    next_level()
             if event.type == pygame.QUIT:
                 running = False
 
