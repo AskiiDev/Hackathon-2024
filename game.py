@@ -1002,8 +1002,8 @@ class Sprite:
 
                         if ogre_anim[self.frame] == ogre_images[6] and not self.has_damaged:
                             self.has_damaged = True
-                            direction_x = player_coords['x'] - self.coords[0]
-                            direction_y = player_coords['y'] - self.coords[1]
+                            direction_x = player_coords['x'] + 0.5 - self.coords[0]
+                            direction_y = player_coords['y'] + 0.5 - self.coords[1]
                             distance = math.hypot(direction_x, direction_y)
 
                             if distance < 1:
@@ -1016,12 +1016,30 @@ class Sprite:
 def damage_player(amount):
     global player_health
     global damage_frames
+    global score
 
     damage_frames += amount
     player_health = max(0, player_health - amount)
     if player_health == 0:
-        print("gameover")
+        display.fill((0,0,0))
+        
+        text_surface = FONTS['floor'].render("GAME OVER", False, (255,0,0))
+        text_surface1 = FONTS['floor'].render(f"YOU SCORED {score}", False, (255,255,255))
+        text_surface2 = FONTS['floor'].render("Press SPACE to return to menu.", False, (255,255,255))
+        display.blit(text_surface, (20,20))
+        display.blit(text_surface1, (20,60))
+        display.blit(text_surface2, (20,100))
 
+
+        pygame.display.flip()
+        
+
+        temp = True
+        while temp:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        init()
 
 def next_level():
     global total_score
