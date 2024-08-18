@@ -312,8 +312,8 @@ fireball_proj = load_image(pygame.image.load("imgs/attacks/fireball/fireball_pro
 barrel_img = load_image(pygame.image.load("imgs/props/barrel.png"), False)
 barrel_destroyed_img = load_image(pygame.image.load("imgs/props/barrel_destroyed.png"), False)
 
-fireball_powerup = load_image(pygame.image.load("imgs/props/fireball_powerup.png"), False)
-lightning_powerup = load_image(pygame.image.load("imgs/props/lightning_powerup.png"), False)
+fireball_powerup = load_image(pygame.image.load("imgs/powerups/whiskey.png"), False)
+lightning_powerup = load_image(pygame.image.load("imgs/powerups/car_battery.png"), False)
 
 
 def distance_fog(distance, scaled_texture):
@@ -1181,7 +1181,7 @@ def init():
                     anim_counter = frames
                     current_weapon_state = ATTACKS[held_spell][current_anim_frame][0]
                     if held_spell == "punch" and current_anim_frame == 1:
-                        fire(2)
+                        fire(3)
                     if held_spell == "lightning" and current_anim_frame == 3:
                         for i in sprites:
                             if math.hypot(player_coords['x'] - i.coords[0], player_coords['y'] - i.coords[0]) < 2:
