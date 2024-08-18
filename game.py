@@ -1174,7 +1174,7 @@ def init():
                     anim_counter = frames
                     current_weapon_state = ATTACKS[held_spell][current_anim_frame][0]
                     if held_spell == "punch" and current_anim_frame == 1:
-                        fire(2)
+                        fire(3)
                     if held_spell == "lightning" and current_anim_frame == 3:
                         pass
         elif can_attack:
