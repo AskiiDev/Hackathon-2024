@@ -269,7 +269,7 @@ def gen_map(surface):
         
         hud = pygame.transform.scale(pygame.image.load("imgs/HUD.png").convert_alpha(), (800, 600))
 
-        surface.blit(pygame.transform.scale(render_map(stationary), (800, 450)), (0,0))
+        surface.blit(pygame.transform.scale(render_map(stationary), (760, 410)), (20,20))
 
         surface.blit(hud, (0, 0))
         pygame.display.flip()
@@ -289,7 +289,7 @@ def gen_boss_map():
 
 
 def render_map(rooms):
-    colours = np.array([[0, 0, 0], [0, 0, 255], [255, 255, 0], [0,255,0], [0,255,0]], dtype=np.uint8)  # 3x3 array for RGB values
+    colours = np.array([[0, 0, 0], [50, 50, 50], [100, 0, 0], [50,50,50], [50,50,50]], dtype=np.uint8)  # 3x3 array for RGB values
     surface = pygame.Surface((WIDTH, HEIGHT))
     grid = np.array(gen_map_grid(rooms), dtype=np.uint8)  # Convert grid to NumPy array
 
