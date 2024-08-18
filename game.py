@@ -1057,6 +1057,8 @@ def next_level():
     global pills
     global souls
 
+    pygame.mixer.Sound.play(SFX['shut'])
+
     total_score += 1000 - min(max(elapsed_time - 20, 0) * 40, 1000)
     
     if (level % 5 == 4):
@@ -1276,6 +1278,7 @@ def init():
 
                     else:
                         attack = False
+                        can_attack = True
                         current_anim_frame = 0
                 else:
                     anim_counter = frames
@@ -1345,6 +1348,7 @@ def init():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     if can_attack:
+                        can_attack = False
                         attack = True
                         pygame.mixer.Sound.play(SFX[held_spell])
                 if event.key == pygame.K_ESCAPE:
