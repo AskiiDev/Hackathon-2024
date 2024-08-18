@@ -79,6 +79,8 @@ SFX = {
     'punch': pygame.mixer.Sound("sfx/punch.wav")
 }
 
+hurt_sounds = [pygame.mixer.Sound("sfx/hurt1.wav"), pygame.mixer.Sound("sfx/hurt2.wav")]
+
 clock = pygame.time.Clock()
 display = pygame.display.set_mode((WIDTH, HEIGHT))
 
@@ -1064,9 +1066,15 @@ def damage_player(amount):
     global damage_frames
     global score
 
+    if damage_frames <= 0:
+        pygame.mixer.Sound.play(hurt_sounds[random.randint(0, 1)])
+
     damage_frames += amount
     player_health = max(0, player_health - amount)
     if player_health == 0:
+        pygame.mixer.music.stop()
+        pygame.mixer.music.unload()
+
         display.fill((0,0,0))
         
         text_surface = FONTS['floor'].render("GAME OVER", False, (255,0,0))
