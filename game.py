@@ -29,7 +29,7 @@ anim_frames = 0
 MAP_WIDTH = 0
 MAP_HEIGHT = 0
 
-level = 1
+level = 5
 level_start_time = 0
 
 HUD_OFFSET = 150
@@ -325,6 +325,18 @@ ogre_images = {
     7: load_image(pygame.image.load("imgs/enemies/ogre/F8.png").convert_alpha(), False),
     "die1": load_image(pygame.image.load("imgs/enemies/ogre/ODying1.png").convert_alpha(), False),
     "die2": load_image(pygame.image.load("imgs/enemies/ogre/ODying2.png").convert_alpha(), False)
+}
+
+
+boss_images = {
+    0: load_image(pygame.image.load("imgs/enemies/boss/B1.png").convert_alpha(), False),
+    1: load_image(pygame.image.load("imgs/enemies/boss/B2.png").convert_alpha(), False),
+    2: load_image(pygame.image.load("imgs/enemies/boss/B3.png").convert_alpha(), False),
+    3: load_image(pygame.image.load("imgs/enemies/boss/B4.png").convert_alpha(), False),
+    4: load_image(pygame.image.load("imgs/enemies/boss/B5.png").convert_alpha(), False),
+    5: load_image(pygame.image.load("imgs/enemies/boss/B6.png").convert_alpha(), False),
+    6: load_image(pygame.image.load("imgs/enemies/boss/B7.png").convert_alpha(), False),
+    7: load_image(pygame.image.load("imgs/enemies/boss/B8.png").convert_alpha(), False)
 }
 
 ogre_anim = []
@@ -774,6 +786,9 @@ class Sprite:
         self.dir = dir
         self.invulnerable = invulnerable
 
+        self.attacking = True
+
+
         self.attacking = False
         self.prev_anim_frame = 0
         self.frame = 0
@@ -876,6 +891,29 @@ class Sprite:
                 for i in sprites:
                     if i.s_type != "proj":
                         check_sprite_collision(self, i)
+
+            if self.s_type == "boss":
+                self.texture = boss_images[int(anim_frames / 10) % 8]
+                
+                dir_x = self.dir[0]
+                dir_y = self.dir[1]
+
+                new_x = self.coords[0] + self.speed * dir_x
+                if new_x < 3 or new_x > 7:
+                    dir_x *= -1
+                
+                new_y = self.coords[1] + self.speed * dir_y
+                if new_y < 3 or new_y > 7:
+                    dir_y *= -1
+                    
+                self.dir = (dir_x, dir_y)
+
+                self.coords = (self.coords[0] + self.speed * self.dir[0], self.coords[1] + self.speed * self.dir[1])
+                # print(self.coords)
+                
+
+                # self.coords[0] += self.speed * self.dir[0]
+                # self.coords[1] += self.speed * self.dir[1]
 
             if self.s_type == "ghost":
                 self.texture = ghost_images[int(anim_frames / 10) % 3]
@@ -1180,13 +1218,16 @@ def load_level():
         MAP = gen_boss_map()
         MAP_WIDTH = len(MAP)
         MAP_HEIGHT = len(MAP[0])
-        start_pos = (10, 6)
+        start_pos = (1, 6)
 
         player_coords = {'x': start_pos[0] + 0.5, 'y': start_pos[1] + 0.5}
         goal_coords = (1, 6)
         player_rotation = {'x': -1, 'y': 0}
         camera_plane = {'x': 0, 'y': 0.66}
 
+        sprites.append(Sprite((4.5, 4.5), boss_images[0], (256,256), 0.5, health = 15, s_type="boss", solid=False, dir=(-math.sqrt(2) / 2, math.sqrt(2) / 2), speed=0.05))
+
+    print()
     # pygame.time.wait(1000)
     render_hud(0)
     old_display = display.copy()
@@ -1206,7 +1247,6 @@ def load_level():
     level_start_time = time.time()
     pygame.mixer.music.play(-1)
 
-    sprites = []
 
     last_pos = start_pos
 
@@ -1228,7 +1268,8 @@ def init():
     global new_spell
     global damage_frames
     global souls
-    
+
+    sprites = []    
 
     display.fill((0,0,0))
     text_surface = FONTS['floor'].render("Start game: \n Press space.", False, (255,255,255))
@@ -1269,8 +1310,8 @@ def init():
 
     load_level()
 
-    for i in range(level):
-        spawn_monster()
+    # for i in range(level):
+    #     spawn_monster()
     
     # pygame.mixer.music.play()
 
@@ -1289,6 +1330,7 @@ def init():
     render_hud(0)
     pygame.display.flip()
     pygame.time.wait(125)
+
     while running:
         if level % 5 != 0:
             if frames % 300 == 0:
