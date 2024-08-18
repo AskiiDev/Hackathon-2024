@@ -1055,7 +1055,7 @@ def next_level():
     display.blit(pygame.image.load("imgs/props/Merchant_Screen.png"), (0,0))
 
     
-    text_surface = FONTS['floor'].render("Press B to buy", False, (255,255,255))
+    text_surface = FONTS['floor'].render("Press B to buy 'pills'", False, (255,255,255))
     text_surface2 = FONTS['floor'].render("Press SPACE to Leave", False, (255,255,255))
     display.blit(text_surface, (20,20))
     display.blit(text_surface2, (20,60))
@@ -1077,10 +1077,6 @@ def next_level():
                     break
 
     render_hud(0)
-    print("Score:")
-    print(score)
-    print("Total:")
-    print(total_score)
     pygame.display.flip()
 
     # pygame.time.wait(1000)
