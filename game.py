@@ -45,7 +45,7 @@ TEXTURE_WIDTH = 256
 TEXTURE_HEIGHT = 256
 
 souls = 0
-pills = 1
+pills = 0
 
 
 running = True
@@ -81,6 +81,7 @@ SFX = {
 }
 
 hurt_sounds = [pygame.mixer.Sound("sfx/hurt1.wav"), pygame.mixer.Sound("sfx/hurt2.wav")]
+lose_music = pygame.mixer.Sound("music/lose_game.mp3")
 
 clock = pygame.time.Clock()
 display = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -1117,6 +1118,7 @@ def damage_player(amount):
     if player_health == 0:
         pygame.mixer.music.stop()
         pygame.mixer.music.unload()
+        pygame.mixer.Sound.play(lose_music)
 
         display.fill((0,0,0))
         
