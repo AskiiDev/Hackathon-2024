@@ -1204,7 +1204,22 @@ def init():
         spawn_monster()
     
     # pygame.mixer.music.play()
-            
+
+    
+    old_display = display.copy()
+
+    display.fill((0,0,0))
+    render_hud(0)
+    pygame.display.flip()
+    pygame.time.wait(125)    
+    display.blit(old_display, (0,0))
+    render_hud(0)
+    pygame.display.flip()
+    pygame.time.wait(125)
+    display.fill((0,0,0))
+    render_hud(0)
+    pygame.display.flip()
+    pygame.time.wait(125)
     while running:
 
         if frames % 300 == 0:
