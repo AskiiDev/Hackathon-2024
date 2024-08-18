@@ -65,9 +65,10 @@ STAGE_TRACKS = ["music/strange_people.mp3", "music/wave_of_fiends.mp3", "music/g
 # STAGE_TRACKS = ["music/wave_of_fiends.mp3", "music/goblin_guts.mp3"]
 
 SFX = {
-    'shut': pygame.mixer.Sound("sfx/door_shut.mp3"),
-    'open': pygame.mixer.Sound("sfx/door_open.mp3"),
-    'barrel': pygame.mixer.Sound("sfx/break_barrel.wav")
+    'shut': pygame.mixer.Sound("sfx/door_shut.wav"),
+    'open': pygame.mixer.Sound("sfx/door_open.wav"),
+    'barrel': pygame.mixer.Sound("sfx/break_barrel.wav"),
+    'squelch': pygame.mixer.Sound("sfx/squelch.wav")
 }
 
 clock = pygame.time.Clock()
@@ -800,6 +801,7 @@ class Sprite:
 
         if self.mark_for_death == 1:
             sprites.append(Sprite((self.coords), gore_pile, (256, 256), 0.1,  invulnerable=True, s_type = 'gore pile'))
+            pygame.mixer.Sound.play(SFX['squelch'])
             self.texture = gore_pile
             sprites.remove(self)
             souls += 1
@@ -839,7 +841,7 @@ class Sprite:
                 distance = math.sqrt(direction_x ** 2 + direction_y ** 2)
 
                 if distance < 0.3:        
-                    damage_player(20)
+                    damage_player(9)
                     sprites.remove(self)
 
                 for i in sprites:
@@ -1005,7 +1007,7 @@ class Sprite:
                             distance = math.hypot(direction_x, direction_y)
 
                             if distance < 1:
-                                damage_player(10)
+                                damage_player(40)
 
         self.prev_anim_frame = anim_frames
 
