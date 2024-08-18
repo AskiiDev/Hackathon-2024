@@ -45,7 +45,7 @@ TEXTURE_WIDTH = 256
 TEXTURE_HEIGHT = 256
 
 souls = 0
-pills = 0
+pills = 1
 
 
 running = True
@@ -62,12 +62,12 @@ FONTS = {
 }
 
 
-# STAGE_TRACKS = ["music/strange_people.mp3", "music/wave_of_fiends.mp3", "music/goblin_guts.mp3", "music/guitar_wizard.mp3"]
-STAGE_TRACKS = ["music/wave_of_fiends.wav", "music/goblin_guts.mp3", "music/strange_people.mp3"]
+STAGE_TRACKS = ["music/strange_people.mp3", "music/wave_of_fiends.wav", "music/goblin_guts.mp3", "music/guitar_wizard.mp3"]
+# STAGE_TRACKS = ["music/wave_of_fiends.wav", "music/goblin_guts.mp3", "music/strange_people.mp3"]
 random.shuffle(STAGE_TRACKS)
 # print(STAGE_TRACKS)
 
-MENU_MUSIC = "music/main_menu.mp3"
+MENU_MUSIC = "music/main_menu.wav"
 
 SFX = {
     'shut': pygame.mixer.Sound("sfx/door_shut.wav"),
@@ -76,7 +76,8 @@ SFX = {
     'squelch': pygame.mixer.Sound("sfx/squelch.wav"),
     'lightning': pygame.mixer.Sound("sfx/lightning.wav"),
     'fireball': pygame.mixer.Sound("sfx/fireball.wav"),
-    'punch': pygame.mixer.Sound("sfx/punch.wav")
+    'punch': pygame.mixer.Sound("sfx/punch.wav"),
+    'pills': pygame.mixer.Sound("sfx/pills.wav")
 }
 
 hurt_sounds = [pygame.mixer.Sound("sfx/hurt1.wav"), pygame.mixer.Sound("sfx/hurt2.wav")]
@@ -147,10 +148,28 @@ lightning = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightnin
              11: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning2.png").convert_alpha(), (WIDTH, HEIGHT)), 1),
              12: (pygame.transform.scale(pygame.image.load("imgs/attacks/lightning/lightning1.png").convert_alpha(), (WIDTH, HEIGHT)), 1)}
 
+pills_anim = {0: (pygame.transform.scale(pygame.image.load("imgs/attacks/pills/pill1.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
+              1: (pygame.transform.scale(pygame.image.load("imgs/attacks/pills/pill2.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
+              2: (pygame.transform.scale(pygame.image.load("imgs/attacks/pills/pill3.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
+              3: (pygame.transform.scale(pygame.image.load("imgs/attacks/pills/pill4.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
+              4: (pygame.transform.scale(pygame.image.load("imgs/attacks/pills/pill5.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
+              5: (pygame.transform.scale(pygame.image.load("imgs/attacks/pills/pill6.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
+              6: (pygame.transform.scale(pygame.image.load("imgs/attacks/pills/pill7.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
+              7: (pygame.transform.scale(pygame.image.load("imgs/attacks/pills/pill8.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
+              8: (pygame.transform.scale(pygame.image.load("imgs/attacks/pills/pill9.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
+              9: (pygame.transform.scale(pygame.image.load("imgs/attacks/pills/pill10.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
+              10: (pygame.transform.scale(pygame.image.load("imgs/attacks/pills/pill11.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
+              11: (pygame.transform.scale(pygame.image.load("imgs/attacks/pills/pill12.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
+              12: (pygame.transform.scale(pygame.image.load("imgs/attacks/pills/pill13.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
+              13: (pygame.transform.scale(pygame.image.load("imgs/attacks/pills/pill14.png").convert_alpha(), (WIDTH, HEIGHT)), 5),
+              14: (pygame.transform.scale(pygame.image.load("imgs/attacks/punch/fist2.png").convert_alpha(), (WIDTH, HEIGHT)), 5)}
+
+
 ATTACKS = {
     "punch": punch,
     "fireball": fireball,
-    "lightning": lightning
+    "lightning": lightning,
+    "pills": pills_anim
 }
 
 # -----------------------------------------------------------------------------------------------
@@ -1193,7 +1212,7 @@ def load_level():
 
 
 def init():
-    global running
+    global running, pills
     global total_score
     global level
     global sprites
@@ -1297,6 +1316,9 @@ def init():
                             sprites.append(Sprite((player_coords['x'] - 0.5 + (0.5 * player_rotation['x']), player_coords['y'] - 0.5 + (0.5 * player_rotation['y'])), 
                                                   fireball_proj, (256,256), 0.1, solid=False, invulnerable=True, 
                                                   speed=0.2, dir=(player_rotation['x'],player_rotation['y']), s_type="proj"))
+                        elif held_spell == "pills":
+                            player_health = 100
+                            pills -= 1
                             # pass
 
                     else:
@@ -1371,6 +1393,12 @@ def init():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     if can_attack:
+                        can_attack = False
+                        attack = True
+                        pygame.mixer.Sound.play(SFX[held_spell])
+                elif event.key == pygame.K_e:
+                    if can_attack and pills > 0:
+                        held_spell = "pills"
                         can_attack = False
                         attack = True
                         pygame.mixer.Sound.play(SFX[held_spell])
