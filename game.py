@@ -29,7 +29,7 @@ anim_frames = 0
 MAP_WIDTH = 0
 MAP_HEIGHT = 0
 
-level = 5
+level = 1
 level_start_time = 0
 
 HUD_OFFSET = 150
@@ -796,6 +796,10 @@ class Sprite:
             return
         if self.invulnerable:
             return
+        if self.s_type == "boss":
+            self.health -= 1
+            self.attacking = True
+            return
         if not self.mark_for_death:
             self.died = True
             self.mark_for_death = 20
@@ -874,8 +878,22 @@ class Sprite:
                         check_sprite_collision(self, i)
 
             if self.s_type == "boss":
+                if self.health <= 0:
+                    sprites.remove(self)
+                    sprites.append(Sprite((self.coords), gore_pile, (256, 256), 0.1,  invulnerable=True, s_type = 'gore pile'))
+
+                    pygame.time.wait(1000)
+                    next_level()
                 self.texture = boss_images[int(anim_frames / 10) % 8]
+
+                if random.randint(0,100) == 100: 
+                    self.attacking = not self.attacking
                 
+                if self.attacking:
+                    self.speed = 0.2
+                else:
+                    self.speed = 0
+
                 dir_x = self.dir[0]
                 dir_y = self.dir[1]
 
@@ -890,6 +908,12 @@ class Sprite:
                 self.dir = (dir_x, dir_y)
 
                 self.coords = (self.coords[0] + self.speed * self.dir[0], self.coords[1] + self.speed * self.dir[1])
+
+
+                distance = math.hypot(player_coords['x'] - self.coords[0], player_coords['y'] - self.coords[1])
+
+                if distance < 1:
+                    damage_player(2)
                 # print(self.coords)
                 
 
@@ -1206,7 +1230,7 @@ def load_level():
         player_rotation = {'x': -1, 'y': 0}
         camera_plane = {'x': 0, 'y': 0.66}
 
-        sprites.append(Sprite((4.5, 4.5), boss_images[0], (256,256), 0.5, health = 15, s_type="boss", solid=False, dir=(-math.sqrt(2) / 2, math.sqrt(2) / 2), speed=0.05))
+        sprites.append(Sprite((4.5, 4.5), boss_images[0], (256,256), 0.5, health = 3 * (level // 5), s_type="boss", solid=False, dir=(-math.sqrt(2) / 2, math.sqrt(2) / 2), speed=0.05))
 
     print()
     # pygame.time.wait(1000)
@@ -1418,8 +1442,6 @@ def init():
                         pygame.mixer.Sound.play(SFX[held_spell])
                 if event.key == pygame.K_ESCAPE:
                     quit()
-                if event.key == pygame.K_TAB:
-                    next_level()
             if event.type == pygame.QUIT:
                 running = False
 
