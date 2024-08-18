@@ -2,6 +2,7 @@ from mapgen import *
 import pygame
 import math
 import time
+import random
 
 
 STATE = "MENU"
@@ -61,14 +62,21 @@ FONTS = {
 }
 
 
-STAGE_TRACKS = ["music/strange_people.mp3", "music/wave_of_fiends.mp3", "music/goblin_guts.mp3", "music/guitar_wizard.mp3"]
-# STAGE_TRACKS = ["music/wave_of_fiends.mp3", "music/goblin_guts.mp3"]
+# STAGE_TRACKS = ["music/strange_people.mp3", "music/wave_of_fiends.mp3", "music/goblin_guts.mp3", "music/guitar_wizard.mp3"]
+STAGE_TRACKS = ["music/wave_of_fiends.wav", "music/goblin_guts.mp3", "music/strange_people.mp3"]
+random.shuffle(STAGE_TRACKS)
+# print(STAGE_TRACKS)
+
+MENU_MUSIC = "music/main_menu.mp3"
 
 SFX = {
     'shut': pygame.mixer.Sound("sfx/door_shut.wav"),
     'open': pygame.mixer.Sound("sfx/door_open.wav"),
     'barrel': pygame.mixer.Sound("sfx/break_barrel.wav"),
-    'squelch': pygame.mixer.Sound("sfx/squelch.wav")
+    'squelch': pygame.mixer.Sound("sfx/squelch.wav"),
+    'lightning': pygame.mixer.Sound("sfx/lightning.wav"),
+    'fireball': pygame.mixer.Sound("sfx/fireball.wav"),
+    'punch': pygame.mixer.Sound("sfx/punch.wav")
 }
 
 clock = pygame.time.Clock()
@@ -774,6 +782,7 @@ class Sprite:
         if not self.mark_for_death:
             self.died = True
             self.mark_for_death = 20
+            pygame.mixer.Sound.play(SFX['squelch'])
 
     def handle_hit(self):
         self.get_hit()
@@ -793,7 +802,6 @@ class Sprite:
             lower_hand = True
             sprites.remove(self)
 
-
     def simulate(self):
         global player_health
         global sprites
@@ -801,7 +809,7 @@ class Sprite:
 
         if self.mark_for_death == 1:
             sprites.append(Sprite((self.coords), gore_pile, (256, 256), 0.1,  invulnerable=True, s_type = 'gore pile'))
-            pygame.mixer.Sound.play(SFX['squelch'])
+
             self.texture = gore_pile
             sprites.remove(self)
             souls += 1
@@ -1109,6 +1117,10 @@ def load_level():
     global barrels
     global souls
 
+    pygame.mixer.music.stop()
+    pygame.mixer.music.unload()
+    pygame.mixer.music.load(STAGE_TRACKS[(level - 1) % len(STAGE_TRACKS)])
+
     player_health = 100
     souls = 0 
     score = 0
@@ -1148,6 +1160,7 @@ def load_level():
 
     # pygame.time.wait(1000)
     level_start_time = time.time()
+    pygame.mixer.music.play(-1)
 
     sprites = []
 
@@ -1175,6 +1188,8 @@ def init():
 
     display.fill((0,0,0))
     text_surface = FONTS['floor'].render("Start game: \n Press space.", False, (255,255,255))
+    pygame.mixer.music.load(MENU_MUSIC)
+    pygame.mixer.music.play(-1)
     display.blit(text_surface, (20,20))
     menu = True
     pygame.display.flip()
@@ -1183,10 +1198,9 @@ def init():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     menu = False
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.unload()
                     break
-        
-    
-
 
     can_attack = True
     lower_hand = False
@@ -1285,7 +1299,7 @@ def init():
                 held_spell = new_spell
                 current_weapon_state = ATTACKS[held_spell][0][0]
 
-        if raise_hand and hands_y > 0 and not attack:
+        if raise_hand and hands_y > 0:
             can_attack = False
             hands_y -= 30
             if hands_y <= 0:
@@ -1332,6 +1346,7 @@ def init():
                 if event.key == pygame.K_SPACE:
                     if can_attack:
                         attack = True
+                        pygame.mixer.Sound.play(SFX[held_spell])
                 if event.key == pygame.K_ESCAPE:
                     quit()
                 if event.key == pygame.K_TAB:
